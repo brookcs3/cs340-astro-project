@@ -1,0 +1,29 @@
+---
+import mysql from 'mysql2/promise';
+
+// Connect to MySQL
+const connection = await mysql.createConnection({
+  host: import.meta.env.MYSQL_HOST,
+  user: import.meta.env.MYSQL_USER,
+  password: import.meta.env.MYSQL_PASSWORD,
+  database: import.meta.env.MYSQL_DATABASE,
+});
+
+// Run the diagnostic queries
+await connection.execute('DROP TABLE IF EXISTS diagnostic');
+await connection.execute('CREATE TABLE diagnostic(id INT PRIMARY KEY AUTO_INCREMENT, text VARCHAR(255) NOT NULL)');
+await connection.execute('INSERT INTO diagnostic (text) VALUES ("MySQL and Astro is working for brooksc3!")');
+const [rows] = await connection.execute('SELECT * FROM diagnostic');
+
+await connection.end();
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CS340 Activity 2 - Astro + MySQL</title>
+</head>
+<body>
+  <h1>MySQL Results:</h1>
+  <pre>{JSON.stringify(rows, null, 2)}</pre>
+</body>
+</html>
