@@ -21,12 +21,11 @@ jobs:
       - name: Connect to VPN (Headless SSO)
         run: |
           # xvfb-run creates a virtual screen for the SSO browser
-          xvfb-run openconnect-sso --server ${{ secrets.VPN_HOST }} \
+          xvfb-run openconnect-sso \
+            --server ${{ secrets.VPN_HOST }} \
             --user "${{ secrets.VPN_USER }}" \
             --authgroup "${{ secrets.VPN_GROUP }}" \
-            --useragent "AnyConnect" \
-            --openconnect-args "--background --passwd-on-stdin" \
-            <<< "${{ secrets.VPN_PASS }}"
+            -- --background --passwd-on-stdin <<< "${{ secrets.VPN_PASS }}"
 
           # Wait for VPN connection and Duo Push approval
           echo "Waiting for VPN connection and Duo Push approval..."
