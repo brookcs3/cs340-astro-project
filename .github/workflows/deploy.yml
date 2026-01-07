@@ -1,4 +1,4 @@
-name: OSU VPN Deployment
+name: OSU VPN SSO Deployment
 
 on:
   push:
@@ -12,21 +12,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install OpenConnect
+      - name: Install VPN and SSO Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y openconnect
+          sudo apt-get install -y openconnect python3-pyqt5 python3-pyqt5.qtwebengine xvfb
+          pip3 install openconnect-sso
 
-      - name: Connect to VPN
+      - name: Connect to VPN (Headless SSO)
         run: |
-          # Sends Password + the word "push" to trigger Duo Mobile app
-          printf "%s\npush" "${{ secrets.VPN_PASS }}" | sudo openconnect --background \
-            --user=${{ secrets.VPN_USER }} \
-            --authgroup="${{ secrets.VPN_GROUP }}" \
-            --passwd-on-stdin ${{ secrets.VPN_HOST }}
+          # xvfb-run creates a virtual screen for the SSO browser
+          xvfb-run openconnect-sso --server ${{ secrets.VPN_HOST }} \
+            --user "${{ secrets.VPN_USER }}" \
+            --authgroup "${{ secrets.VPN_GROUP }}" \
+            --useragent "AnyConnect" \
+            --openconnect-args "--background --passwd-on-stdin" \
+            <<< "${{ secrets.VPN_PASS }}"
 
-          # Wait for Duo Push approval
-          echo "Waiting for Duo Push approval..."
+          # Wait for VPN connection and Duo Push approval
+          echo "Waiting for VPN connection and Duo Push approval..."
           sleep 25
 
       - name: Configure SSH
@@ -68,4 +71,6 @@ jobs:
 
       - name: Disconnect VPN
         if: always()
-        run: sudo pkill openconnect || true
+        run: |
+          sudo pkill openconnect || true
+          sudo pkill openconnect-sso || true
