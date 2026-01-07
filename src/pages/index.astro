@@ -1,7 +1,11 @@
 ---
+// CS340 Activity 2 - brooksc3
+// Using Astro with mysql2 to connect to the class database
+// mysql2: https://www.npmjs.com/package/mysql2
+
 import mysql from 'mysql2/promise';
 
-// Connect to MySQL
+// db credentials from .env file
 const connection = await mysql.createConnection({
   host: import.meta.env.MYSQL_HOST,
   user: import.meta.env.MYSQL_USER,
@@ -9,7 +13,7 @@ const connection = await mysql.createConnection({
   database: import.meta.env.MYSQL_DATABASE,
 });
 
-// Run the diagnostic queries
+// run the 4 diagnostic queries
 await connection.execute('DROP TABLE IF EXISTS diagnostic');
 await connection.execute('CREATE TABLE diagnostic(id INT PRIMARY KEY AUTO_INCREMENT, text VARCHAR(255) NOT NULL)');
 await connection.execute('INSERT INTO diagnostic (text) VALUES ("MySQL and Astro is working for brooksc3!")');
@@ -17,13 +21,229 @@ const [rows] = await connection.execute('SELECT * FROM diagnostic');
 
 await connection.end();
 ---
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CS340 Activity 2 - Astro + MySQL</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CS340 Activity 2 - brooksc3</title>
+<style>
+  :root {
+    --bg: color(display-p3 0.768627 0.031373 0.031373 / 1.000000);
+    --ink: color(display-p3 0 0 0);
+    --depth-z: 2px;
+    --shadow-shift-x: 0.6px;
+    --shadow-shift-y: 0.9px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(120% 100% at 50% 10%, color(display-p3 0.827451 0.043137 0.043137 / 1.000000) 0%, var(--bg) 45%, color(display-p3 0.556863 0.015686 0.015686 / 1.000000) 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    perspective: 1000px;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: microTilt 3s ease-in-out infinite alternate;
+  }
+
+  .stage::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-style: preserve-3d;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, color(display-p3 1 1 1 / 0.05) 0%, transparent 70%);
+    transform: translateZ(-0.5px) scale(1.05);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .card {
+    position: relative;
+    max-width: 65ch;
+    padding: clamp(2rem, 4vw, 4rem);
+    transform-style: preserve-3d;
+    overflow: hidden;
+    animation: microTilt 3.04s backwards infinite alternate;
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.5rem;
+    font-size: clamp(2rem, 5vw, 4rem);
+    transform: translateZ(var(--depth-z));
+    text-shadow:
+      0.2px 0.2px 0 color(display-p3 0.066667 0.094118 0.000000 / 1.000000),
+      0.6px 0.8px 0 color(display-p3 0.000000 0.023529 0.000000 / 1.000000),
+      0.8px 1.1px 0.6px color(display-p3 0.000000 0.015686 0.000000 / 1.000000);
+  }
+
+  h1::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    color: var(--ink);
+    transform: translateZ(calc(var(--depth-z) * -1)) translate(var(--shadow-shift-x), var(--shadow-shift-y));
+    filter: blur(1.1px) opacity(0.18);
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  h2 {
+    font-weight: 800;
+    font-size: 1.3rem;
+    margin: 1.5rem 0 0.8rem;
+    text-shadow: 0.4px 0.5px 0 #0003;
+    transform: translateZ(calc(var(--depth-z) * 0.25));
+    transform-style: preserve-3d;
+    animation: microTilt 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate;
+  }
+
+  p, pre {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    letter-spacing: 0.003em;
+    margin-bottom: 1rem;
+    transform: translateZ(calc(var(--depth-z) * -0.5));
+    text-shadow: 0.5px 0.7px 2px rgba(0,0,0,0.07);
+    transform-style: preserve-3d;
+    animation: microTilt 3s cubic-bezier(0.4, 0.2, 0.6, 0.8) infinite alternate;
+    will-change: transform, text-shadow;
+  }
+
+  .result-box {
+    padding: 1.2rem;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+
+  .result-label {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+    opacity: 0.95;
+  }
+
+  .result-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    text-shadow: none;
+    --shadow-intensity: 0;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 2rem;
+  }
+
+  @keyframes microTilt {
+    0% {
+      transform: rotateX(0.2deg) rotateY(-0.3deg) translateZ(0);
+    }
+    50% {
+      transform: rotateX(-0.3deg) rotateY(0.4deg) translateZ(0.5px);
+    }
+    100% {
+      transform: rotateX(0.15deg) rotateY(0.00deg) translateZ(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage { animation: none; }
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2.5rem);
+    }
+  }
+</style>
 </head>
 <body>
-  <h1>MySQL Results:</h1>
-  <pre>{JSON.stringify(rows, null, 2)}</pre>
+  <main class="stage" aria-label="CS340 Activity 2">
+    <section class="card">
+      <h1 data-text="MySQL Results">MySQL Results</h1>
+
+      <div class="result-box">
+        <p class="result-value">{JSON.stringify(rows, null, 2)}</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('load', () => {
+      const stage = document.querySelector('.stage') as HTMLElement;
+      if (!stage) return;
+
+
+      // Inject more extreme keyframes
+      const keyframes = `
+        @keyframes microTilt {
+          0%   { transform: rotateX(1deg) rotateY(-1.5deg) translateZ(0); text-shadow: 1.6px 1.2px 0 #0005; }
+          50%  { transform: rotateX(-1.5deg) rotateY(2deg) translateZ(1px); text-shadow: 1.4px 1.6px 0 #0005; }
+          100% { transform: rotateX(0.75deg) rotateY(0deg) translateZ(0); text-shadow: 1px 2.4px 0 #0005; }
+        }
+      `;
+      const style = document.createElement('style');
+      style.textContent = keyframes;
+      document.head.appendChild(style);
+
+      // Increase depth for more extreme 3D effect
+      document.documentElement.style.setProperty('--depth-z', '4px');
+
+      // Proximity-based text shadow on result-value
+      const resultValue = document.querySelector('.result-value') as HTMLElement;
+      if (resultValue) {
+        document.addEventListener('mousemove', (e) => {
+          const rect = resultValue.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const distance = Math.sqrt(
+            Math.pow(e.clientX - centerX, 2) +
+            Math.pow(e.clientY - centerY, 2)
+          );
+
+          const maxDistance = 150;
+          const intensity = Math.max(0, 1 - distance / maxDistance);
+
+          const blur = 2 * intensity;
+          const opacity = 0.07 * intensity;
+          if (intensity > 0) {
+            resultValue.style.cssText = `text-shadow: 0.5px 0.7px ${blur}px rgba(0,0,0,${opacity}) !important`;
+          } else {
+            resultValue.style.cssText = 'text-shadow: none !important';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
