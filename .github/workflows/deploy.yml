@@ -18,18 +18,40 @@ jobs:
           sudo apt-get install -y openconnect python3-pyqt5 python3-pyqt5.qtwebengine xvfb
           pip3 install openconnect-sso
 
+      - name: Configure openconnect-sso
+        run: |
+          mkdir -p ~/.config/openconnect-sso
+          cat > ~/.config/openconnect-sso/config.toml << EOF
+          [openconnect]
+          server = "${{ secrets.VPN_HOST }}"
+          authgroup = "${{ secrets.VPN_GROUP }}"
+          user = "${{ secrets.VPN_USER }}"
+
+          [credentials]
+          password = "${{ secrets.VPN_PASS }}"
+          EOF
+
       - name: Connect to VPN (Headless SSO)
         run: |
           # xvfb-run creates a virtual screen for the SSO browser
+          # Run with --browser-display-mode hidden to suppress browser window
           xvfb-run openconnect-sso \
-            --server ${{ secrets.VPN_HOST }} \
-            --user "${{ secrets.VPN_USER }}" \
-            --authgroup "${{ secrets.VPN_GROUP }}" \
-            -- --background --passwd-on-stdin <<< "${{ secrets.VPN_PASS }}"
+            --browser-display-mode hidden \
+            -- --background &
+
+          VPN_PID=$!
 
           # Wait for VPN connection and Duo Push approval
           echo "Waiting for VPN connection and Duo Push approval..."
-          sleep 25
+          echo ">>> APPROVE DUO PUSH NOW <<<"
+          sleep 30
+
+          # Check if VPN is connected
+          if ip addr show tun0 &>/dev/null; then
+            echo "VPN connected successfully!"
+          else
+            echo "VPN may not be connected, continuing anyway..."
+          fi
 
       - name: Configure SSH
         run: |
