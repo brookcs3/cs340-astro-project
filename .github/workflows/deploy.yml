@@ -1,0 +1,71 @@
+name: OSU VPN Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  vpn-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install OpenConnect
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openconnect
+
+      - name: Connect to VPN
+        run: |
+          # Sends Password + the word "push" to trigger Duo Mobile app
+          printf "%s\npush" "${{ secrets.VPN_PASS }}" | sudo openconnect --background \
+            --user=${{ secrets.VPN_USER }} \
+            --authgroup="${{ secrets.VPN_GROUP }}" \
+            --passwd-on-stdin ${{ secrets.VPN_HOST }}
+
+          # Wait for Duo Push approval
+          echo "Waiting for Duo Push approval..."
+          sleep 25
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Server
+        run: |
+          # Sync source files (excluding node_modules, dist, .git, .env)
+          rsync -avz --delete \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='.git' \
+            --exclude='.env' \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/CS340/activity2/
+
+          # SSH in and rebuild
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+            cd ~/CS340/activity2
+
+            # Stop existing server
+            npx forever stop dist/server/entry.mjs 2>/dev/null || true
+
+            # Install dependencies and build
+            npm install
+            npm run build
+
+            # Start server
+            HOST=0.0.0.0 PORT=8742 npx forever start dist/server/entry.mjs
+
+            echo "Deployment complete!"
+          ENDSSH
+
+      - name: Disconnect VPN
+        if: always()
+        run: sudo pkill openconnect || true
