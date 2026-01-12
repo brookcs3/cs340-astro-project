@@ -36,6 +36,56 @@ Before you start, make sure you have:
 
 ---
 
+## Installing Astro & Dependencies
+
+### Creating a New Astro Project (From Scratch)
+
+If you ever need to start a new Astro project:
+
+```bash
+# Create a new Astro project
+npm create astro@latest
+```
+
+It'll ask you some questions:
+- Where to create the project
+- Which template to use (empty, blog, etc.)
+- Whether to install dependencies
+- Whether to use TypeScript
+- Whether to initialize git
+
+### Our Project's Dependencies
+
+This project uses these key packages:
+
+**1. Astro** - The framework itself
+```bash
+npm install astro
+```
+
+**2. @astrojs/node** - Node.js adapter for SSR (server-side rendering)
+```bash
+npx astro add node
+# or
+npm install @astrojs/node
+```
+
+**3. mysql2** - MySQL driver for Node.js
+```bash
+npm install mysql2
+```
+
+**4. forever** - Keeps the server running on the classwork server
+```bash
+npm install forever
+```
+
+### For This Repo
+
+All of the above are already listed in `package.json`, so when you run `npm install` in the project folder, it grabs everything automatically.
+
+---
+
 ## Getting Started
 
 ### 1. Clone the Repository
