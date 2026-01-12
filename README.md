@@ -111,20 +111,22 @@ This downloads all the packages listed in `package.json` into `node_modules/`. T
 
 ### 3. Create Your `.env` File
 
-The database credentials are NOT in the repo (for security). Create a `.env` file in the project root:
+The `.env` file is gitignored (not in the repo) so you need to create it. Make a file called `.env` in the project root:
 
 ```bash
 touch .env
 ```
 
-Then add your credentials (I'll share these with you separately):
+For now, we're sharing my database. Add these credentials:
 
 ```
-MYSQL_HOST=your_host
-MYSQL_USER=your_username
-MYSQL_PASSWORD=your_password
-MYSQL_DATABASE=your_database
+MYSQL_HOST=classmysql.engr.oregonstate.edu
+MYSQL_USER=cs340_brooksc3
+MYSQL_PASSWORD=3434
+MYSQL_DATABASE=cs340_brooksc3
 ```
+
+(Later when you have your own OSU database credentials, you can swap them in or we can set up a shared one.)
 
 ---
 
