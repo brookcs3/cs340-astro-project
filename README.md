@@ -109,15 +109,9 @@ npm install
 
 This downloads all the packages listed in `package.json` into `node_modules/`. Takes a minute the first time.
 
-### 3. Create Your `.env` File
+### 3. The `.env` File
 
-The `.env` file is gitignored (not in the repo) so you need to create it. Make a file called `.env` in the project root:
-
-```bash
-touch .env
-```
-
-For now, we're sharing my database. Add these credentials:
+The `.env` file is included in the repo with shared database credentials. You should already have it after cloning:
 
 ```
 MYSQL_HOST=classmysql.engr.oregonstate.edu
@@ -126,7 +120,7 @@ MYSQL_PASSWORD=3434
 MYSQL_DATABASE=cs340_brooksc3
 ```
 
-(Later when you have your own OSU database credentials, you can swap them in or we can set up a shared one.)
+(Later we can set up a shared database or swap in different credentials if needed.)
 
 ---
 
