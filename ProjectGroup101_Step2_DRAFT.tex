@@ -1,0 +1,652 @@
+\documentclass[11pt]{article}
+
+% =====================
+% Packages
+% =====================
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{listings}
+
+% =====================
+% Colors
+% =====================
+\definecolor{gamecolor}{HTML}{F5A623}
+\definecolor{playercolor}{HTML}{4A90D9}
+\definecolor{categorycolor}{HTML}{F8E71C}
+\definecolor{platformcolor}{HTML}{7ED321}
+\definecolor{submissioncolor}{HTML}{D0021B}
+\definecolor{junctioncolor}{HTML}{50E3C2}
+\definecolor{headerred}{HTML}{C0392B}
+\definecolor{feedbackbg}{HTML}{E8F4FD}
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{codeframe}{HTML}{CCCCCC}
+
+% =====================
+% Listings (SQL)
+% =====================
+\lstset{
+    language=SQL,
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    showstringspaces=false,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray},
+    stringstyle=\color{red!70!black},
+    numbers=none,
+    xleftmargin=1em,
+    framexleftmargin=0.5em
+}
+
+% =====================
+% Formatting
+% =====================
+\setlength{\parskip}{0.8em}
+\setlength{\parindent}{0pt}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Group 101}
+\lhead{CS340 - Project Step 2 Draft}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=headerred,
+    urlcolor=headerred
+}
+
+% =====================
+% Custom Commands
+% =====================
+\newcommand{\entitybox}[2]{%
+    \noindent\fcolorbox{black}{#1}{\textbf{\strut\hspace{0.5em}#2\hspace{0.5em}}}%
+}
+
+\begin{document}
+
+% =====================
+% Title
+% =====================
+\begin{center}
+    {\LARGE\bfseries CS340 -- Project Step 2 Draft}\\[0.5em]
+    {\large Group 101 | Cameron Brooks \& Brayden Plumb}\\[0.3em]
+    {\large Winter 2026}
+\end{center}
+
+\hrulefill
+
+% =====================
+% a) FEEDBACK SECTIONS
+% =====================
+\section*{a) Fixes Based on Feedback from Step 1}
+
+We received four peer reviews on our Step 1 Draft submission. Below is a summary of the feedback and actions taken.
+
+\textbf{Reviewers:} Kai Sherman, Olivia Choi, Bryant Aragon, Lucas Feldsien.
+
+\subsection*{Actions Based on Feedback}
+
+\begin{enumerate}[leftmargin=2em]
+    \item \textbf{Naming Consistency -- Singular to Plural} (Kai Sherman): Changed all entity names from singular to plural (Game $\rightarrow$ Games, Player $\rightarrow$ Players, RunCategory $\rightarrow$ RunCategories, Platform $\rightarrow$ Platforms, RunSubmission $\rightarrow$ RunSubmissions).
+
+    \item \textbf{Intersection Table Naming Inconsistency} (Kai Sherman): Standardized the intersection table name to ``GamesOnPlatforms'' across both the ERD and all documentation.
+
+    \item \textbf{Game-RunCategory Relationship Wording} (Kai Sherman, Lucas Feldsien): Clarified that the relationship is 1:M from Games to RunCategories: one Game can have multiple RunCategories, but each RunCategory belongs to exactly one Game.
+
+    \item \textbf{Annual Run Estimates} (Kai Sherman, Olivia Choi): Added estimate of approximately 750--3,000 run submissions annually based on 25--100 players $\times$ 1--30 runs per player.
+
+    \item \textbf{Entity Highlighting in Overview} (Kai Sherman): Added colored highlighting to entity names in the Overview section.
+
+    \item \textbf{Verification Date Attribute} (Olivia Choi): Added \texttt{verifiedDate: date} attribute to RunSubmissions.
+
+    \item \textbf{User Roles Clarification} (Olivia Choi): Clarified that the website will be ``editable by admins, and viewable by players.''
+
+    \item \textbf{Run Category Edge Cases} (Olivia Choi): Confirmed each RunSubmission must belong to exactly one category (NOT NULL FK).
+\end{enumerate}
+
+\subsection*{Additional Design Changes for Step 2}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Normalization Verified}: Applied the normalization process to all tables (details in Normalization section below). All tables satisfy 3NF.
+    \item \textbf{CASCADE Constraints}: Added ON DELETE CASCADE and ON UPDATE CASCADE to all foreign key constraints, as recommended by the course materials.
+    \item \textbf{Schema Diagram}: Created based on the DDL implementation.
+    \item \textbf{Example Data}: Added 3--5 rows of sample data per table that demonstrate all relationship types in action.
+\end{itemize}
+
+\hrulefill
+
+% =====================
+% b) OVERVIEW AND DATABASE OUTLINE (Updated)
+% =====================
+\section*{b) Project Overview and Database Outline -- Updated Version}
+
+\subsection*{Overview}
+
+\textit{The following overview is a fictional scenario we are using as a framework for our project.}
+
+\textbf{Northern Oregon Speedrunners Association} is a nonprofit organization that runs various video game speedrunning events in local communities in Northern Oregon. They would like to have a website where they can store the various speedrun submissions from their competitions, which typically consist of 25--100 players, depending on the competition. The amount of runs submitted per year will vary drastically, depending on activity in the local speedrunning community, but on average most players will submit 1--30 runs per year. Based on these figures, the system is expected to handle approximately 750--3,000 \textbf{run submissions} annually.
+
+Due to the limited needs of this system, they don't need a way to categorize the runs by the event they are a part of, and storing them by date is enough information for them to infer the event they are from. This then allows users to submit runs to be verified that they may complete from home by sending the info about their run to an administrator of the association.
+
+The association only wants \colorbox{submissioncolor!30}{\textbf{run submissions}} to be able to be submitted by admin board members of the association. They would like to be able to see the name of the \colorbox{playercolor!30}{\textbf{players}}, the runs they have successfully completed, what \colorbox{gamecolor!30}{\textbf{game}} they speedran, what \colorbox{categorycolor!30}{\textbf{run categories}} these runs are in, and what \colorbox{platformcolor!30}{\textbf{platform}} they were on when they completed the run. This information will serve as a record for all local speedrunners in the area to show off their previous times, and gives \textbf{Northern Oregon Speedrunners Association} a record to determine local speedrunning records. This website will be editable by admins, and viewable by players.
+
+\subsection*{Database Outline}
+
+% --- Players ---
+\subsubsection*{\entitybox{playercolor}{Players}}
+\textit{Description: A speedrunner participant (via a displayName) that can speedrun various games.}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{playerID}: int, auto\_increment, unique, not NULL, PK
+    \item \textbf{displayName}: varchar(100), not NULL, unique -- The player's username/unique handle
+    \item \textbf{country}: varchar(100) -- The player's country of residence
+\end{itemize}
+
+\textbf{Relationship(s):}
+\begin{itemize}[leftmargin=2.5em]
+    \item 1:M with RunSubmissions with playerID as a FK in RunSubmissions (one Player can have many RunSubmissions)
+\end{itemize}
+
+\hrulefill
+
+% --- Games ---
+\subsubsection*{\entitybox{gamecolor}{Games}}
+\textit{Description: A video game that is able to be speedrun.}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{gameID}: int, auto\_increment, unique, not NULL, PK
+    \item \textbf{title}: varchar(255), not NULL -- The name of the video game
+    \item \textbf{releaseYear}: year(4) -- Year the game was released
+    \item \textbf{developer}: varchar(255) -- The company that developed the game
+\end{itemize}
+
+\textbf{Relationship(s):}
+\begin{itemize}[leftmargin=2.5em]
+    \item 1:M with RunSubmissions with gameID as a FK in RunSubmissions (one Game can have many RunSubmissions)
+    \item 1:M with RunCategories with gameID as a FK in RunCategories (one Game can have multiple RunCategories)
+    \item M:N with Platforms via \textit{GamesOnPlatforms} intersection table with both gameID and platformID as FKs (one Game can be on many Platforms; one Platform can have many Games)
+\end{itemize}
+
+\hrulefill
+
+% --- RunCategories ---
+\subsubsection*{\entitybox{categorycolor}{RunCategories}}
+\textit{Description: A speedrun submission type which different games provide.}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{runCategoryID}: int, auto\_increment, unique, not NULL, PK
+    \item \textbf{name}: varchar(100), not NULL -- The category name (e.g., ``Any\%'', ``Glitchless'', ``100\%'')
+    \item \textbf{ruleset}: text -- Description of rules for this category
+    \item \textbf{gameID}: int, not NULL, FK -- References Games.gameID
+\end{itemize}
+
+\textbf{Relationship(s):}
+\begin{itemize}[leftmargin=2.5em]
+    \item 1:M with RunSubmissions with runCategoryID as a FK in RunSubmissions (one RunCategory can have many RunSubmissions)
+    \item M:1 with Games with gameID as a FK in this RunCategories table (each RunCategory belongs to one and only one Game)
+\end{itemize}
+
+\hrulefill
+
+% --- Platforms ---
+\subsubsection*{\entitybox{platformcolor}{Platforms}}
+\textit{Description: The hardware or environment a game can be played on.}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{platformID}: int, auto\_increment, unique, not NULL, PK
+    \item \textbf{name}: varchar(100), not NULL, unique -- The platform name (e.g., ``PC'', ``Nintendo Switch'', ``PlayStation 5'')
+\end{itemize}
+
+\textbf{Relationship(s):}
+\begin{itemize}[leftmargin=2.5em]
+    \item 1:M with RunSubmissions with platformID as a FK in RunSubmissions (one Platform can have many RunSubmissions)
+    \item M:N with Games via \textit{GamesOnPlatforms} intersection table with both platformID and gameID as FKs (one Platform can have many Games; one Game can be on many Platforms)
+\end{itemize}
+
+\hrulefill
+
+% --- RunSubmissions ---
+\subsubsection*{\entitybox{submissioncolor!80}{RunSubmissions}}
+\textit{Description: A specific speedrun record that has all the information about that speedrun attempt.}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{runSubmissionID}: int, auto\_increment, unique, not NULL, PK
+    \item \textbf{runTime}: time(3), not NULL -- The duration of the speedrun (HH:MM:SS.mmm)
+    \item \textbf{submissionDate}: date, not NULL -- The date the run was submitted
+    \item \textbf{verified}: boolean, default FALSE -- Whether the run has been verified by an admin
+    \item \textbf{verifiedDate}: date -- The date the run was verified (NULL if not yet verified)
+    \item \textbf{playerID}: int, not NULL, FK -- References Players.playerID
+    \item \textbf{gameID}: int, not NULL, FK -- References Games.gameID
+    \item \textbf{platformID}: int, not NULL, FK -- References Platforms.platformID
+    \item \textbf{runCategoryID}: int, not NULL, FK -- References RunCategories.runCategoryID
+    \item \textbf{videoLink}: varchar(2048) -- URL to video proof of the run
+\end{itemize}
+
+\textbf{Relationship(s):}
+\begin{itemize}[leftmargin=2.5em]
+    \item M:1 with Players with playerID as a FK in this RunSubmissions table (many RunSubmissions belong to one Player)
+    \item M:1 with Games with gameID as a FK in this RunSubmissions table (many RunSubmissions belong to one Game)
+    \item M:1 with Platforms with platformID as a FK in this RunSubmissions table (many RunSubmissions were played on one Platform)
+    \item M:1 with RunCategories with runCategoryID as a FK in this RunSubmissions table (many RunSubmissions are in one RunCategory)
+\end{itemize}
+
+\hrulefill
+
+% --- GamesOnPlatforms ---
+\subsubsection*{\entitybox{junctioncolor}{GamesOnPlatforms} \normalfont\textit{(Intersection Table)}}
+\textit{Description: Tracks which games are available on which platforms (M:N relationship).}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{gameOnPlatformID}: int, auto\_increment, unique, not NULL, PK
+    \item \textbf{gameID}: int, not NULL, FK -- References Games.gameID
+    \item \textbf{platformID}: int, not NULL, FK -- References Platforms.platformID
+\end{itemize}
+
+\textbf{Constraint:} Unique combination of (gameID, platformID)
+
+% =====================
+% Relationship Summary
+% =====================
+\subsection*{Relationship Summary}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Relationship} & \textbf{Type} & \textbf{Implementation} \\
+\midrule
+Players $\rightarrow$ RunSubmissions & 1:M & playerID FK in RunSubmissions \\
+Games $\rightarrow$ RunSubmissions & 1:M & gameID FK in RunSubmissions \\
+Platforms $\rightarrow$ RunSubmissions & 1:M & platformID FK in RunSubmissions \\
+RunCategories $\rightarrow$ RunSubmissions & 1:M & runCategoryID FK in RunSubmissions \\
+Games $\leftrightarrow$ Platforms & M:N & GamesOnPlatforms intersection table \\
+Games $\rightarrow$ RunCategories & 1:M & gameID FK in RunCategories \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Total: 6 relationships (including 1 M:N) across 6 tables}
+
+\hrulefill
+
+% =====================
+% c) ERD
+% =====================
+\section*{c) Entity-Relationship Diagram}
+
+\textit{The ER diagram below demonstrates the relationships between all entities. Only primary keys are shown in the ERD; full attributes are listed in the Database Outline above and the Schema Diagram below.}
+
+\begin{center}
+    \textit{[ERD image -- see unnamed.png from Step 1 Final, updated to reflect Step 2 changes]}
+\end{center}
+
+\textit{Note: The ERD matches the Database Outline and Schema Diagram. All entity names are plural, the intersection table is named GamesOnPlatforms, and the verifiedDate attribute has been added to RunSubmissions.}
+
+\hrulefill
+
+% =====================
+% NORMALIZATION ANALYSIS (new for Step 2)
+% =====================
+\section*{Normalization Analysis}
+
+We applied the normalization process as described in the Exploration -- Normalization Steps. We started by examining a hypothetical sample report (similar to the construction company example from the exploration) and checked for redundancies and anomalies.
+
+\subsection*{Hypothetical Denormalized Report}
+
+Consider a flat report that an admin might want to generate -- listing all run submissions with full details:
+
+\begin{center}
+\small
+\begin{tabular}{p{1.5cm}p{1.2cm}p{2cm}p{1.5cm}p{1.8cm}p{1.2cm}p{1.5cm}p{1cm}}
+\toprule
+\textbf{Player} & \textbf{Country} & \textbf{Game} & \textbf{Developer} & \textbf{Category} & \textbf{Platform} & \textbf{RunTime} & \textbf{Verified} \\
+\midrule
+SpeedDemon42 & US & Super Mario 64 & Nintendo & Any\% & N64 & 15:35 & Yes \\
+SpeedDemon42 & US & Super Mario 64 & Nintendo & 16 Star & N64 & 49:12 & Yes \\
+PixelRunner & CA & Zelda: OoT & Nintendo & Any\% & Switch & 18:22 & No \\
+GlitchHunter & US & Celeste & Maddy Makes & Any\% & PC & 32:45 & Yes \\
+NightOwlPlays & JP & Portal & Valve & Inbounds & PC & 14:08 & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Redundancy and Anomaly Analysis}
+
+If all data were stored in a single flat table:
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Redundant Data}: ``SpeedDemon42'' and ``US'' are repeated for each run by that player. ``Nintendo'' is repeated for each game developed by Nintendo. ``Super Mario 64'' is repeated for each run of that game.
+    \item \textbf{Insert Anomaly}: To add a new game, we would need to create a dummy run submission. To add a new player, we would need a dummy run.
+    \item \textbf{Update Anomaly}: Changing a player's country would require updating every row with that player. Changing a game's developer would require updating every run for that game.
+    \item \textbf{Delete Anomaly}: Deleting the only run for a game would lose all information about that game. Deleting the only run for a player would lose that player's information.
+\end{itemize}
+
+\subsection*{1NF Verification}
+
+All tables are in 1NF:
+\begin{itemize}[leftmargin=2em]
+    \item Every table has a defined primary key (no repeating groups).
+    \item All attributes contain atomic values (single value per cell, no lists or sets).
+    \item No table has repeating groups -- each row is uniquely identifiable by its PK.
+\end{itemize}
+
+\subsection*{2NF Verification}
+
+All tables are in 2NF:
+\begin{itemize}[leftmargin=2em]
+    \item No table has a composite primary key with partial dependencies. Players, Games, Platforms, RunCategories, and RunSubmissions all use single-column auto-increment primary keys, so partial dependency is impossible.
+    \item The GamesOnPlatforms table has a surrogate PK (\texttt{gameOnPlatformID}) and a unique constraint on (\texttt{gameID}, \texttt{platformID}). The table contains no non-key attributes beyond the two foreign keys, so there are no partial dependencies.
+\end{itemize}
+
+\subsection*{3NF Verification}
+
+All tables are in 3NF:
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Players}: \texttt{playerID} $\rightarrow$ \texttt{displayName}, \texttt{country}. No transitive dependency (country does not determine any other non-key attribute).
+    \item \textbf{Games}: \texttt{gameID} $\rightarrow$ \texttt{title}, \texttt{releaseYear}, \texttt{developer}. No transitive dependency (developer does not determine releaseYear or title within this table -- different games by the same developer have different titles and release years).
+    \item \textbf{Platforms}: \texttt{platformID} $\rightarrow$ \texttt{name}. Only one non-key attribute; no transitive dependency possible.
+    \item \textbf{RunCategories}: \texttt{runCategoryID} $\rightarrow$ \texttt{name}, \texttt{ruleset}, \texttt{gameID}. The gameID is a FK, not a transitive determinant. The name and ruleset are specific to the category, not determined by gameID alone (one game has multiple categories with different names and rulesets).
+    \item \textbf{RunSubmissions}: \texttt{runSubmissionID} $\rightarrow$ all other attributes. All non-key attributes (runTime, submissionDate, verified, verifiedDate, videoLink) are facts about the specific run submission, not about any other non-key attribute. The FKs (playerID, gameID, platformID, runCategoryID) reference other tables -- they do not transitively determine each other.
+    \item \textbf{GamesOnPlatforms}: Contains only the surrogate PK and two FKs. No non-key attributes to create transitive dependencies.
+\end{itemize}
+
+\textbf{Conclusion}: All six tables satisfy 3NF. No denormalization decisions were necessary, as the schema was already properly decomposed from the initial design in Step 1.
+
+\hrulefill
+
+% =====================
+% d) SCHEMA DIAGRAM
+% =====================
+\section*{d) Schema Diagram}
+
+The schema diagram below represents the final normalized database design. All tables, their attributes, primary keys (PK), and foreign keys (FK) are shown, along with the relationships between tables.
+
+\textit{Note: This schema matches the Database Outline and ERD exactly. All foreign keys use ON DELETE CASCADE and ON UPDATE CASCADE constraints.}
+
+\vspace{1em}
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.2}
+
+% -- Players --
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{playercolor!30}
+\multicolumn{3}{|c|}{\textbf{Players}} \\
+\hline
+\textbf{Attribute} & \textbf{Type} & \textbf{Constraints} \\
+\hline
+\underline{playerID} & int & PK, auto\_increment, NOT NULL \\
+displayName & varchar(100) & NOT NULL, UNIQUE \\
+country & varchar(100) & \\
+\hline
+\end{tabular}
+
+\vspace{1.5em}
+
+% -- Games --
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{gamecolor!30}
+\multicolumn{3}{|c|}{\textbf{Games}} \\
+\hline
+\textbf{Attribute} & \textbf{Type} & \textbf{Constraints} \\
+\hline
+\underline{gameID} & int & PK, auto\_increment, NOT NULL \\
+title & varchar(255) & NOT NULL \\
+releaseYear & year(4) & \\
+developer & varchar(255) & \\
+\hline
+\end{tabular}
+
+\vspace{1.5em}
+
+% -- Platforms --
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{platformcolor!30}
+\multicolumn{3}{|c|}{\textbf{Platforms}} \\
+\hline
+\textbf{Attribute} & \textbf{Type} & \textbf{Constraints} \\
+\hline
+\underline{platformID} & int & PK, auto\_increment, NOT NULL \\
+name & varchar(100) & NOT NULL, UNIQUE \\
+\hline
+\end{tabular}
+
+\vspace{1.5em}
+
+% -- RunCategories --
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{categorycolor!30}
+\multicolumn{3}{|c|}{\textbf{RunCategories}} \\
+\hline
+\textbf{Attribute} & \textbf{Type} & \textbf{Constraints} \\
+\hline
+\underline{runCategoryID} & int & PK, auto\_increment, NOT NULL \\
+name & varchar(100) & NOT NULL \\
+ruleset & text & \\
+gameID & int & FK $\rightarrow$ Games.gameID, NOT NULL \\
+\hline
+\end{tabular}
+
+\vspace{1.5em}
+
+% -- RunSubmissions --
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{submissioncolor!15}
+\multicolumn{3}{|c|}{\textbf{RunSubmissions}} \\
+\hline
+\textbf{Attribute} & \textbf{Type} & \textbf{Constraints} \\
+\hline
+\underline{runSubmissionID} & int & PK, auto\_increment, NOT NULL \\
+runTime & time(3) & NOT NULL \\
+submissionDate & date & NOT NULL \\
+verified & boolean & DEFAULT FALSE \\
+verifiedDate & date & (NULL if unverified) \\
+playerID & int & FK $\rightarrow$ Players.playerID, NOT NULL \\
+gameID & int & FK $\rightarrow$ Games.gameID, NOT NULL \\
+platformID & int & FK $\rightarrow$ Platforms.platformID, NOT NULL \\
+runCategoryID & int & FK $\rightarrow$ RunCategories.runCategoryID, NOT NULL \\
+videoLink & varchar(2048) & \\
+\hline
+\end{tabular}
+
+\vspace{1.5em}
+
+% -- GamesOnPlatforms --
+\begin{tabular}{|l|l|l|}
+\hline
+\rowcolor{junctioncolor!30}
+\multicolumn{3}{|c|}{\textbf{GamesOnPlatforms} \textit{(Intersection Table)}} \\
+\hline
+\textbf{Attribute} & \textbf{Type} & \textbf{Constraints} \\
+\hline
+\underline{gameOnPlatformID} & int & PK, auto\_increment, NOT NULL \\
+gameID & int & FK $\rightarrow$ Games.gameID, NOT NULL \\
+platformID & int & FK $\rightarrow$ Platforms.platformID, NOT NULL \\
+\hline
+\multicolumn{3}{|l|}{\textit{UNIQUE constraint on (gameID, platformID)}} \\
+\hline
+\end{tabular}
+
+\end{center}
+
+\vspace{1em}
+
+\subsection*{Schema Relationships}
+
+\begin{center}
+\begin{tabular}{lcl}
+Players & $\xrightarrow{\text{1:M}}$ & RunSubmissions \\
+Games & $\xrightarrow{\text{1:M}}$ & RunSubmissions \\
+Games & $\xrightarrow{\text{1:M}}$ & RunCategories \\
+Platforms & $\xrightarrow{\text{1:M}}$ & RunSubmissions \\
+RunCategories & $\xrightarrow{\text{1:M}}$ & RunSubmissions \\
+Games & $\xleftrightarrow{\text{M:N}}$ & Platforms \textit{(via GamesOnPlatforms)} \\
+\end{tabular}
+\end{center}
+
+\hrulefill
+
+% =====================
+% e) EXAMPLE DATA
+% =====================
+\section*{e) Example Data}
+
+The following tables show the sample data inserted into each table. This data is included in the accompanying DDL.sql file via INSERT statements. The data demonstrates how foreign keys enforce 1:M relationships and how the intersection table shows the M:N relationship in action.
+
+\subsection*{Players (5 rows)}
+
+\begin{center}
+\begin{tabular}{clc}
+\toprule
+\textbf{playerID} & \textbf{displayName} & \textbf{country} \\
+\midrule
+1 & SpeedDemon42 & United States \\
+2 & PixelRunner & Canada \\
+3 & GlitchHunter & United States \\
+4 & NightOwlPlays & Japan \\
+5 & TurboTina & United Kingdom \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Note: TurboTina (playerID=5) has no RunSubmissions, demonstrating that a Player can exist without runs.}
+
+\subsection*{Games (4 rows)}
+
+\begin{center}
+\begin{tabular}{clcc}
+\toprule
+\textbf{gameID} & \textbf{title} & \textbf{releaseYear} & \textbf{developer} \\
+\midrule
+1 & Super Mario 64 & 1996 & Nintendo \\
+2 & The Legend of Zelda: Ocarina of Time & 1998 & Nintendo \\
+3 & Celeste & 2018 & Maddy Makes Games \\
+4 & Portal & 2007 & Valve \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Platforms (4 rows)}
+
+\begin{center}
+\begin{tabular}{cl}
+\toprule
+\textbf{platformID} & \textbf{name} \\
+\midrule
+1 & PC \\
+2 & Nintendo 64 \\
+3 & Nintendo Switch \\
+4 & PlayStation 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Note: PlayStation 5 (platformID=4) has no games in GamesOnPlatforms, demonstrating that a Platform can exist without associated games.}
+
+\subsection*{RunCategories (5 rows)}
+
+\begin{center}
+\begin{tabular}{clp{5cm}c}
+\toprule
+\textbf{runCategoryID} & \textbf{name} & \textbf{ruleset} & \textbf{gameID (FK)} \\
+\midrule
+1 & Any\% & Complete the game as fast as possible by any means. & 1 \\
+2 & 16 Star & Complete the game collecting exactly 16 stars. & 1 \\
+3 & Any\% & Complete the game as fast as possible by any means. & 2 \\
+4 & Any\% & Complete the game as fast as possible by any means. & 3 \\
+5 & Inbounds & Complete all chambers without leaving intended boundaries. & 4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Note: Game 1 (Super Mario 64) has two categories (Any\% and 16 Star), demonstrating the 1:M relationship from Games to RunCategories. Each category name like ``Any\%'' can appear for different games with different rulesets, but each row belongs to exactly one game.}
+
+\subsection*{GamesOnPlatforms (7 rows) -- Intersection Table}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+\textbf{gameOnPlatformID} & \textbf{gameID (FK)} & \textbf{platformID (FK)} \\
+\midrule
+1 & 1 & 2 \\
+2 & 1 & 3 \\
+3 & 1 & 1 \\
+4 & 2 & 2 \\
+5 & 2 & 3 \\
+6 & 3 & 1 \\
+7 & 4 & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{M:N demonstration: Game 1 (Super Mario 64) appears on 3 platforms (N64, Switch, PC). Platform 1 (PC) hosts 3 games (Super Mario 64, Celeste, Portal). This shows the many-to-many relationship in action.}
+
+\subsection*{RunSubmissions (5 rows)}
+
+\begin{center}
+\small
+\begin{tabular}{ccccccccc}
+\toprule
+\textbf{ID} & \textbf{runTime} & \textbf{subDate} & \textbf{verified} & \textbf{verifiedDate} & \textbf{playerID} & \textbf{gameID} & \textbf{platID} & \textbf{catID} \\
+\midrule
+1 & 00:15:35.230 & 2026-01-10 & TRUE & 2026-01-11 & 1 & 1 & 2 & 1 \\
+2 & 00:49:12.800 & 2026-01-15 & TRUE & 2026-01-16 & 1 & 1 & 2 & 2 \\
+3 & 00:18:22.450 & 2026-01-20 & FALSE & NULL & 2 & 2 & 3 & 3 \\
+4 & 00:32:45.110 & 2026-02-01 & TRUE & 2026-02-02 & 3 & 3 & 1 & 4 \\
+5 & 00:14:08.670 & 2026-02-03 & FALSE & NULL & 4 & 4 & 1 & 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Note: Column headers abbreviated for readability. Full column names: runSubmissionID, runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID. The videoLink column is omitted from the table for space but is included in the DDL.sql file.}
+
+\textbf{Relationship demonstrations:}
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{1:M Players$\rightarrow$RunSubmissions}: Player 1 (SpeedDemon42) has 2 runs (IDs 1 and 2), while Player 5 (TurboTina) has 0 runs.
+    \item \textbf{1:M Games$\rightarrow$RunSubmissions}: Game 1 (Super Mario 64) has 2 runs (IDs 1 and 2).
+    \item \textbf{1:M RunCategories$\rightarrow$RunSubmissions}: Each run belongs to exactly one category.
+    \item \textbf{NULL verifiedDate}: Runs 3 and 5 are unverified, so verifiedDate is NULL.
+    \item \textbf{NULL videoLink}: Run 4 has no video link, showing that videoLink is optional.
+\end{itemize}
+
+\hrulefill
+
+% =====================
+% Citations
+% =====================
+\section*{Citations}
+
+None. All content of this proposal is our original work.
+
+\vfill
+\begin{center}
+\textit{Group 101 | Cameron Brooks \& Brayden Plumb | CS340 Winter 2026}
+\end{center}
+
+\end{document}
