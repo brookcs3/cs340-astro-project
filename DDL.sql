@@ -58,7 +58,8 @@ CREATE TABLE RunCategories (
     PRIMARY KEY (runCategoryID),
     FOREIGN KEY (gameID) REFERENCES Games(gameID)
         ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT unique_category_per_game UNIQUE (name, gameID)
 );
 
 -- --------------------------------------------------------
