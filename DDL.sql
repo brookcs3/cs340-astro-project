@@ -28,7 +28,7 @@ DROP TABLE IF EXISTS Games;
 CREATE TABLE Games (
     gameID int NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
-    releaseYear year(4),
+    releaseYear year,
     developer varchar(255),
     PRIMARY KEY (gameID)
 );
