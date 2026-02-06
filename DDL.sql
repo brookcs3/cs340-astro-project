@@ -178,7 +178,7 @@ VALUES
 -- --------------------------------------------------------
 -- Insert RunSubmissions (5 rows)
 -- Demonstrates 1:M relationships: multiple runs per player, per game, etc.
--- Includes one verified run and one unverified run to show NULL verifiedDate.
+-- Includes verified and unverified runs to show TRUE verified status with dates and FALSE status with NULL verifiedDate.
 -- --------------------------------------------------------
 INSERT INTO RunSubmissions (runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink)
 SELECT
