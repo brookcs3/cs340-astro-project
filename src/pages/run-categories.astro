@@ -1,0 +1,141 @@
+---
+// CS340 Project Step 3 - Group 101
+// Run Categories page: Browse, Add, Update, Delete speedrun categories
+
+import Layout from '../layouts/Layout.astro';
+import { getConnection } from '../lib/db';
+
+let categories: any[] = [];
+let games: any[] = [];
+let error = '';
+
+try {
+  const db = await getConnection();
+  const [catRows] = await db.execute(`
+    SELECT rc.runCategoryID, rc.name, rc.ruleset, rc.gameID, g.title AS gameTitle
+    FROM RunCategories rc
+    INNER JOIN Games g ON rc.gameID = g.gameID
+    ORDER BY rc.runCategoryID
+  `);
+  categories = catRows as any[];
+
+  const [gameRows] = await db.execute('SELECT gameID, title FROM Games ORDER BY title');
+  games = gameRows as any[];
+
+  await db.end();
+} catch (e: any) {
+  error = e.message;
+}
+---
+
+<Layout title="Run Categories">
+  <h1 class="page-title">Run Categories</h1>
+
+  {error && <p style="color: red;">Database error: {error}</p>}
+
+  <!-- Browse All Run Categories -->
+  <div class="section-card">
+    <h2>Browse All Run Categories</h2>
+    <p>Each category belongs to exactly one game and defines a specific ruleset for speedrunning.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Category ID</th>
+          <th>Category Name</th>
+          <th>Game</th>
+          <th>Ruleset</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {categories.length === 0 && (
+          <tr><td colspan="5" style="text-align:center; color:#9ca3af;">No run categories found.</td></tr>
+        )}
+        {categories.map((cat) => (
+          <tr>
+            <td>{cat.runCategoryID}</td>
+            <td>{cat.name}</td>
+            <td>{cat.gameTitle}</td>
+            <td>{cat.ruleset || <span class="null-value">NULL</span>}</td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-warning btn-sm" onclick={`document.getElementById('edit-id').value='${cat.runCategoryID}'; document.getElementById('edit-name').value='${cat.name.replace(/'/g, "\\'")}'; document.getElementById('edit-gameID').value='${cat.gameID}'; document.getElementById('edit-ruleset').value='${(cat.ruleset || '').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'; document.getElementById('edit-section').scrollIntoView({behavior:'smooth'})`}>Edit</button>
+                <form method="POST" action="/run-categories" style="display:inline;">
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="runCategoryID" value={cat.runCategoryID} />
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add New Run Category -->
+  <div class="section-card">
+    <h2>Add New Run Category</h2>
+    <p>Create a new speedrun category for a specific game.</p>
+    <form method="POST" action="/run-categories">
+      <input type="hidden" name="action" value="insert" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="add-name">Category Name *</label>
+          <input type="text" id="add-name" name="name" required maxlength="100" placeholder="e.g. Any%" />
+        </div>
+        <div class="form-group">
+          <label for="add-gameID">Game *</label>
+          <select id="add-gameID" name="gameID" required>
+            <option value="">-- Select a Game --</option>
+            {games.map((game) => (
+              <option value={game.gameID}>{game.title}</option>
+            ))}
+          </select>
+          <span class="hint">Each category belongs to exactly one game</span>
+        </div>
+        <div class="form-group">
+          <label for="add-ruleset">Ruleset</label>
+          <textarea id="add-ruleset" name="ruleset" placeholder="e.g. Complete the game as fast as possible by any means."></textarea>
+          <span class="hint">Optional description of rules (can be NULL)</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Run Category</button>
+    </form>
+  </div>
+
+  <!-- Update Existing Run Category -->
+  <div class="section-card" id="edit-section">
+    <h2>Update Existing Run Category</h2>
+    <p>Select a category from the table above by clicking "Edit", then modify the fields below.</p>
+    <form method="POST" action="/run-categories">
+      <input type="hidden" name="action" value="update" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="edit-id">Category ID</label>
+          <input type="number" id="edit-id" name="runCategoryID" required readonly placeholder="Click Edit on a row above" />
+          <span class="hint">Auto-filled when clicking Edit</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-name">Category Name *</label>
+          <input type="text" id="edit-name" name="name" required maxlength="100" />
+        </div>
+        <div class="form-group">
+          <label for="edit-gameID">Game *</label>
+          <select id="edit-gameID" name="gameID" required>
+            <option value="">-- Select a Game --</option>
+            {games.map((game) => (
+              <option value={game.gameID}>{game.title}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-ruleset">Ruleset</label>
+          <textarea id="edit-ruleset" name="ruleset"></textarea>
+          <span class="hint">Leave blank to set NULL</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-warning">Update Run Category</button>
+    </form>
+  </div>
+</Layout>

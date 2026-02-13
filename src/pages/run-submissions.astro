@@ -1,0 +1,290 @@
+---
+// CS340 Project Step 3 - Group 101
+// Run Submissions page: Browse, Add, Update, Delete speedrun submission records
+
+import Layout from '../layouts/Layout.astro';
+import { getConnection } from '../lib/db';
+
+let submissions: any[] = [];
+let players: any[] = [];
+let games: any[] = [];
+let platforms: any[] = [];
+let categories: any[] = [];
+let error = '';
+
+try {
+  const db = await getConnection();
+
+  const [subRows] = await db.execute(`
+    SELECT rs.runSubmissionID, rs.runTime, rs.submissionDate, rs.verified,
+           rs.verifiedDate, rs.videoLink,
+           rs.playerID, p.displayName AS playerName,
+           rs.gameID, g.title AS gameTitle,
+           rs.platformID, pl.name AS platformName,
+           rs.runCategoryID, rc.name AS categoryName
+    FROM RunSubmissions rs
+    INNER JOIN Players p ON rs.playerID = p.playerID
+    INNER JOIN Games g ON rs.gameID = g.gameID
+    INNER JOIN Platforms pl ON rs.platformID = pl.platformID
+    INNER JOIN RunCategories rc ON rs.runCategoryID = rc.runCategoryID
+    ORDER BY rs.runSubmissionID
+  `);
+  submissions = subRows as any[];
+
+  const [pRows] = await db.execute('SELECT playerID, displayName FROM Players ORDER BY displayName');
+  players = pRows as any[];
+
+  const [gRows] = await db.execute('SELECT gameID, title FROM Games ORDER BY title');
+  games = gRows as any[];
+
+  const [plRows] = await db.execute('SELECT platformID, name FROM Platforms ORDER BY name');
+  platforms = plRows as any[];
+
+  const [cRows] = await db.execute(`
+    SELECT rc.runCategoryID, rc.name, g.title AS gameTitle
+    FROM RunCategories rc
+    INNER JOIN Games g ON rc.gameID = g.gameID
+    ORDER BY g.title, rc.name
+  `);
+  categories = cRows as any[];
+
+  await db.end();
+} catch (e: any) {
+  error = e.message;
+}
+
+function formatDate(d: any): string {
+  if (!d) return '';
+  const date = new Date(d);
+  return date.toISOString().split('T')[0];
+}
+---
+
+<Layout title="Run Submissions">
+  <h1 class="page-title">Run Submissions</h1>
+
+  {error && <p style="color: red;">Database error: {error}</p>}
+
+  <!-- Browse All Run Submissions -->
+  <div class="section-card">
+    <h2>Browse All Run Submissions</h2>
+    <p>All speedrun records in the database. Each submission links a player, game, platform, and run category.</p>
+    <div style="overflow-x: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Player</th>
+            <th>Game</th>
+            <th>Category</th>
+            <th>Platform</th>
+            <th>Run Time</th>
+            <th>Submitted</th>
+            <th>Verified</th>
+            <th>Verified Date</th>
+            <th>Video Link</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {submissions.length === 0 && (
+            <tr><td colspan="11" style="text-align:center; color:#9ca3af;">No run submissions found.</td></tr>
+          )}
+          {submissions.map((sub) => (
+            <tr>
+              <td>{sub.runSubmissionID}</td>
+              <td>{sub.playerName}</td>
+              <td>{sub.gameTitle}</td>
+              <td>{sub.categoryName}</td>
+              <td>{sub.platformName}</td>
+              <td>{sub.runTime}</td>
+              <td>{formatDate(sub.submissionDate)}</td>
+              <td>{sub.verified ? 'Yes' : 'No'}</td>
+              <td>{sub.verifiedDate ? formatDate(sub.verifiedDate) : <span class="null-value">NULL</span>}</td>
+              <td>
+                {sub.videoLink
+                  ? <a href={sub.videoLink} target="_blank" rel="noopener">Link</a>
+                  : <span class="null-value">NULL</span>
+                }
+              </td>
+              <td>
+                <div class="actions">
+                  <button class="btn btn-warning btn-sm" onclick={`
+                    document.getElementById('edit-id').value='${sub.runSubmissionID}';
+                    document.getElementById('edit-playerID').value='${sub.playerID}';
+                    document.getElementById('edit-gameID').value='${sub.gameID}';
+                    document.getElementById('edit-platformID').value='${sub.platformID}';
+                    document.getElementById('edit-runCategoryID').value='${sub.runCategoryID}';
+                    document.getElementById('edit-runTime').value='${sub.runTime}';
+                    document.getElementById('edit-submissionDate').value='${formatDate(sub.submissionDate)}';
+                    document.getElementById('edit-verified').value='${sub.verified ? '1' : '0'}';
+                    document.getElementById('edit-verifiedDate').value='${sub.verifiedDate ? formatDate(sub.verifiedDate) : ''}';
+                    document.getElementById('edit-videoLink').value='${sub.videoLink || ''}';
+                    document.getElementById('edit-section').scrollIntoView({behavior:'smooth'});
+                  `}>Edit</button>
+                  <form method="POST" action="/run-submissions" style="display:inline;">
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="runSubmissionID" value={sub.runSubmissionID} />
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add New Run Submission -->
+  <div class="section-card">
+    <h2>Add New Run Submission</h2>
+    <p>Submit a new speedrun record.</p>
+    <form method="POST" action="/run-submissions">
+      <input type="hidden" name="action" value="insert" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="add-playerID">Player *</label>
+          <select id="add-playerID" name="playerID" required>
+            <option value="">-- Select a Player --</option>
+            {players.map((p) => (
+              <option value={p.playerID}>{p.displayName}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-gameID">Game *</label>
+          <select id="add-gameID" name="gameID" required>
+            <option value="">-- Select a Game --</option>
+            {games.map((g) => (
+              <option value={g.gameID}>{g.title}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-runCategoryID">Run Category *</label>
+          <select id="add-runCategoryID" name="runCategoryID" required>
+            <option value="">-- Select a Category --</option>
+            {categories.map((c) => (
+              <option value={c.runCategoryID}>{c.name} ({c.gameTitle})</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-platformID">Platform *</label>
+          <select id="add-platformID" name="platformID" required>
+            <option value="">-- Select a Platform --</option>
+            {platforms.map((pl) => (
+              <option value={pl.platformID}>{pl.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-runTime">Run Time *</label>
+          <input type="text" id="add-runTime" name="runTime" required placeholder="HH:MM:SS.mmm (e.g. 00:15:35.230)" />
+          <span class="hint">Format: HH:MM:SS.mmm (millisecond precision)</span>
+        </div>
+        <div class="form-group">
+          <label for="add-submissionDate">Submission Date *</label>
+          <input type="date" id="add-submissionDate" name="submissionDate" required />
+        </div>
+        <div class="form-group">
+          <label for="add-verified">Verified</label>
+          <select id="add-verified" name="verified">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-verifiedDate">Verified Date</label>
+          <input type="date" id="add-verifiedDate" name="verifiedDate" />
+          <span class="hint">Optional (NULL if not yet verified)</span>
+        </div>
+        <div class="form-group">
+          <label for="add-videoLink">Video Link</label>
+          <input type="url" id="add-videoLink" name="videoLink" maxlength="2048" placeholder="https://youtube.com/..." />
+          <span class="hint">Optional URL to video proof (can be NULL)</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Run Submission</button>
+    </form>
+  </div>
+
+  <!-- Update Existing Run Submission -->
+  <div class="section-card" id="edit-section">
+    <h2>Update Existing Run Submission</h2>
+    <p>Select a submission from the table above by clicking "Edit", then modify the fields below.</p>
+    <form method="POST" action="/run-submissions">
+      <input type="hidden" name="action" value="update" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="edit-id">Submission ID</label>
+          <input type="number" id="edit-id" name="runSubmissionID" required readonly placeholder="Click Edit on a row above" />
+          <span class="hint">Auto-filled when clicking Edit</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-playerID">Player *</label>
+          <select id="edit-playerID" name="playerID" required>
+            <option value="">-- Select a Player --</option>
+            {players.map((p) => (
+              <option value={p.playerID}>{p.displayName}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-gameID">Game *</label>
+          <select id="edit-gameID" name="gameID" required>
+            <option value="">-- Select a Game --</option>
+            {games.map((g) => (
+              <option value={g.gameID}>{g.title}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-runCategoryID">Run Category *</label>
+          <select id="edit-runCategoryID" name="runCategoryID" required>
+            <option value="">-- Select a Category --</option>
+            {categories.map((c) => (
+              <option value={c.runCategoryID}>{c.name} ({c.gameTitle})</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-platformID">Platform *</label>
+          <select id="edit-platformID" name="platformID" required>
+            <option value="">-- Select a Platform --</option>
+            {platforms.map((pl) => (
+              <option value={pl.platformID}>{pl.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-runTime">Run Time *</label>
+          <input type="text" id="edit-runTime" name="runTime" required placeholder="HH:MM:SS.mmm" />
+        </div>
+        <div class="form-group">
+          <label for="edit-submissionDate">Submission Date *</label>
+          <input type="date" id="edit-submissionDate" name="submissionDate" required />
+        </div>
+        <div class="form-group">
+          <label for="edit-verified">Verified</label>
+          <select id="edit-verified" name="verified">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-verifiedDate">Verified Date</label>
+          <input type="date" id="edit-verifiedDate" name="verifiedDate" />
+          <span class="hint">Leave blank to set NULL</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-videoLink">Video Link</label>
+          <input type="url" id="edit-videoLink" name="videoLink" maxlength="2048" />
+          <span class="hint">Leave blank to set NULL</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-warning">Update Run Submission</button>
+    </form>
+  </div>
+</Layout>

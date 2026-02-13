@@ -1,0 +1,111 @@
+---
+// CS340 Project Step 3 - Group 101
+// Players page: Browse, Add, Update, Delete speedrunner profiles
+
+import Layout from '../layouts/Layout.astro';
+import { getConnection } from '../lib/db';
+
+let players: any[] = [];
+let error = '';
+
+try {
+  const db = await getConnection();
+  const [rows] = await db.execute('SELECT playerID, displayName, country FROM Players ORDER BY playerID');
+  players = rows as any[];
+  await db.end();
+} catch (e: any) {
+  error = e.message;
+}
+---
+
+<Layout title="Players">
+  <h1 class="page-title">Players</h1>
+
+  {error && <p style="color: red;">Database error: {error}</p>}
+
+  <!-- Browse All Players -->
+  <div class="section-card">
+    <h2>Browse All Players</h2>
+    <p>All registered speedrunner profiles in the database.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Player ID</th>
+          <th>Display Name</th>
+          <th>Country</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {players.length === 0 && (
+          <tr><td colspan="4" style="text-align:center; color:#9ca3af;">No players found.</td></tr>
+        )}
+        {players.map((player) => (
+          <tr>
+            <td>{player.playerID}</td>
+            <td>{player.displayName}</td>
+            <td>{player.country || <span class="null-value">NULL</span>}</td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-warning btn-sm" onclick={`document.getElementById('edit-id').value='${player.playerID}'; document.getElementById('edit-displayName').value='${player.displayName}'; document.getElementById('edit-country').value='${player.country || ''}'; document.getElementById('edit-section').scrollIntoView({behavior:'smooth'})`}>Edit</button>
+                <form method="POST" action="/players" style="display:inline;">
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="playerID" value={player.playerID} />
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add New Player -->
+  <div class="section-card">
+    <h2>Add New Player</h2>
+    <p>Register a new speedrunner in the database.</p>
+    <form method="POST" action="/players">
+      <input type="hidden" name="action" value="insert" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="add-displayName">Display Name *</label>
+          <input type="text" id="add-displayName" name="displayName" required maxlength="100" placeholder="e.g. SpeedDemon42" />
+          <span class="hint">Unique name for this player (max 100 characters)</span>
+        </div>
+        <div class="form-group">
+          <label for="add-country">Country</label>
+          <input type="text" id="add-country" name="country" maxlength="100" placeholder="e.g. United States" />
+          <span class="hint">Player's country of origin (optional, can be NULL)</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Player</button>
+    </form>
+  </div>
+
+  <!-- Update Existing Player -->
+  <div class="section-card" id="edit-section">
+    <h2>Update Existing Player</h2>
+    <p>Select a player from the table above by clicking "Edit", then modify the fields below.</p>
+    <form method="POST" action="/players">
+      <input type="hidden" name="action" value="update" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="edit-id">Player ID</label>
+          <input type="number" id="edit-id" name="playerID" required readonly placeholder="Click Edit on a row above" />
+          <span class="hint">Auto-filled when clicking Edit</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-displayName">Display Name *</label>
+          <input type="text" id="edit-displayName" name="displayName" required maxlength="100" placeholder="" />
+        </div>
+        <div class="form-group">
+          <label for="edit-country">Country</label>
+          <input type="text" id="edit-country" name="country" maxlength="100" placeholder="" />
+          <span class="hint">Leave blank to set NULL</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-warning">Update Player</button>
+    </form>
+  </div>
+</Layout>

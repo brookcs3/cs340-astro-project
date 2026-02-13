@@ -1,0 +1,122 @@
+---
+// CS340 Project Step 3 - Group 101
+// Games page: Browse, Add, Update, Delete video games
+
+import Layout from '../layouts/Layout.astro';
+import { getConnection } from '../lib/db';
+
+let games: any[] = [];
+let error = '';
+
+try {
+  const db = await getConnection();
+  const [rows] = await db.execute('SELECT gameID, title, releaseYear, developer FROM Games ORDER BY gameID');
+  games = rows as any[];
+  await db.end();
+} catch (e: any) {
+  error = e.message;
+}
+---
+
+<Layout title="Games">
+  <h1 class="page-title">Games</h1>
+
+  {error && <p style="color: red;">Database error: {error}</p>}
+
+  <!-- Browse All Games -->
+  <div class="section-card">
+    <h2>Browse All Games</h2>
+    <p>All video games available for speedrunning in the database.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Game ID</th>
+          <th>Title</th>
+          <th>Release Year</th>
+          <th>Developer</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {games.length === 0 && (
+          <tr><td colspan="5" style="text-align:center; color:#9ca3af;">No games found.</td></tr>
+        )}
+        {games.map((game) => (
+          <tr>
+            <td>{game.gameID}</td>
+            <td>{game.title}</td>
+            <td>{game.releaseYear || <span class="null-value">NULL</span>}</td>
+            <td>{game.developer || <span class="null-value">NULL</span>}</td>
+            <td>
+              <div class="actions">
+                <button class="btn btn-warning btn-sm" onclick={`document.getElementById('edit-id').value='${game.gameID}'; document.getElementById('edit-title').value='${game.title.replace(/'/g, "\\'")}'; document.getElementById('edit-releaseYear').value='${game.releaseYear || ''}'; document.getElementById('edit-developer').value='${(game.developer || '').replace(/'/g, "\\'")}'; document.getElementById('edit-section').scrollIntoView({behavior:'smooth'})`}>Edit</button>
+                <form method="POST" action="/games" style="display:inline;">
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="gameID" value={game.gameID} />
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add New Game -->
+  <div class="section-card">
+    <h2>Add New Game</h2>
+    <p>Add a new video game to the speedrunning database.</p>
+    <form method="POST" action="/games">
+      <input type="hidden" name="action" value="insert" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="add-title">Title *</label>
+          <input type="text" id="add-title" name="title" required maxlength="255" placeholder="e.g. Super Mario 64" />
+        </div>
+        <div class="form-group">
+          <label for="add-releaseYear">Release Year</label>
+          <input type="number" id="add-releaseYear" name="releaseYear" min="1950" max="2099" placeholder="e.g. 1996" />
+          <span class="hint">Optional (can be NULL)</span>
+        </div>
+        <div class="form-group">
+          <label for="add-developer">Developer</label>
+          <input type="text" id="add-developer" name="developer" maxlength="255" placeholder="e.g. Nintendo" />
+          <span class="hint">Optional (can be NULL)</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Game</button>
+    </form>
+  </div>
+
+  <!-- Update Existing Game -->
+  <div class="section-card" id="edit-section">
+    <h2>Update Existing Game</h2>
+    <p>Select a game from the table above by clicking "Edit", then modify the fields below.</p>
+    <form method="POST" action="/games">
+      <input type="hidden" name="action" value="update" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="edit-id">Game ID</label>
+          <input type="number" id="edit-id" name="gameID" required readonly placeholder="Click Edit on a row above" />
+          <span class="hint">Auto-filled when clicking Edit</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-title">Title *</label>
+          <input type="text" id="edit-title" name="title" required maxlength="255" />
+        </div>
+        <div class="form-group">
+          <label for="edit-releaseYear">Release Year</label>
+          <input type="number" id="edit-releaseYear" name="releaseYear" min="1950" max="2099" />
+          <span class="hint">Leave blank to set NULL</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-developer">Developer</label>
+          <input type="text" id="edit-developer" name="developer" maxlength="255" />
+          <span class="hint">Leave blank to set NULL</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-warning">Update Game</button>
+    </form>
+  </div>
+</Layout>

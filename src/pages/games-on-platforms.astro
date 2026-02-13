@@ -1,0 +1,109 @@
+---
+// CS340 Project Step 3 - Group 101
+// Games on Platforms page: Browse, Add, Delete game-platform associations (M:N intersection table)
+
+import Layout from '../layouts/Layout.astro';
+import { getConnection } from '../lib/db';
+
+let associations: any[] = [];
+let games: any[] = [];
+let platforms: any[] = [];
+let error = '';
+
+try {
+  const db = await getConnection();
+
+  const [assocRows] = await db.execute(`
+    SELECT gop.gameOnPlatformID, gop.gameID, gop.platformID,
+           g.title AS gameTitle, p.name AS platformName
+    FROM GamesOnPlatforms gop
+    INNER JOIN Games g ON gop.gameID = g.gameID
+    INNER JOIN Platforms p ON gop.platformID = p.platformID
+    ORDER BY g.title, p.name
+  `);
+  associations = assocRows as any[];
+
+  const [gameRows] = await db.execute('SELECT gameID, title FROM Games ORDER BY title');
+  games = gameRows as any[];
+
+  const [platRows] = await db.execute('SELECT platformID, name FROM Platforms ORDER BY name');
+  platforms = platRows as any[];
+
+  await db.end();
+} catch (e: any) {
+  error = e.message;
+}
+---
+
+<Layout title="Games on Platforms">
+  <h1 class="page-title">Games on Platforms</h1>
+
+  {error && <p style="color: red;">Database error: {error}</p>}
+
+  <!-- Browse All Associations -->
+  <div class="section-card">
+    <h2>Browse All Game-Platform Associations</h2>
+    <p>This M:N intersection table tracks which games are available on which platforms. One game can be on many platforms, and one platform can host many games.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Association ID</th>
+          <th>Game</th>
+          <th>Platform</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {associations.length === 0 && (
+          <tr><td colspan="4" style="text-align:center; color:#9ca3af;">No associations found.</td></tr>
+        )}
+        {associations.map((assoc) => (
+          <tr>
+            <td>{assoc.gameOnPlatformID}</td>
+            <td>{assoc.gameTitle}</td>
+            <td>{assoc.platformName}</td>
+            <td>
+              <div class="actions">
+                <form method="POST" action="/games-on-platforms" style="display:inline;">
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="gameOnPlatformID" value={assoc.gameOnPlatformID} />
+                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add New Association -->
+  <div class="section-card">
+    <h2>Add Game to Platform</h2>
+    <p>Associate a game with a platform to indicate it can be played on that platform.</p>
+    <form method="POST" action="/games-on-platforms">
+      <input type="hidden" name="action" value="insert" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="add-gameID">Game *</label>
+          <select id="add-gameID" name="gameID" required>
+            <option value="">-- Select a Game --</option>
+            {games.map((game) => (
+              <option value={game.gameID}>{game.title}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="add-platformID">Platform *</label>
+          <select id="add-platformID" name="platformID" required>
+            <option value="">-- Select a Platform --</option>
+            {platforms.map((p) => (
+              <option value={p.platformID}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Association</button>
+    </form>
+  </div>
+</Layout>

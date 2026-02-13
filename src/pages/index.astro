@@ -1,249 +1,138 @@
 ---
-// CS340 Activity 2 - brooksc3
-// Using Astro with mysql2 to connect to the class database
-// mysql2: https://www.npmjs.com/package/mysql2
+// CS340 Project Step 3 - Group 101
+// Cameron Brooks & Brayden Plumb
+// Northern Oregon Speedrunners Association Database
+// Index page: Landing page linking to all entity UI pages
 
-import mysql from 'mysql2/promise';
-
-// db credentials from .env file
-const connection = await mysql.createConnection({
-  host: import.meta.env.MYSQL_HOST,
-  user: import.meta.env.MYSQL_USER,
-  password: import.meta.env.MYSQL_PASSWORD,
-  database: import.meta.env.MYSQL_DATABASE,
-});
-
-// run the 4 diagnostic queries
-await connection.execute('DROP TABLE IF EXISTS diagnostic');
-await connection.execute('CREATE TABLE diagnostic(id INT PRIMARY KEY AUTO_INCREMENT, text VARCHAR(255) NOT NULL)');
-await connection.execute('INSERT INTO diagnostic (text) VALUES ("MySQL and Astro is working for brooksc3!")');
-const [rows] = await connection.execute('SELECT * FROM diagnostic');
-
-await connection.end();
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CS340 Activity 2 - brooksc3</title>
+<Layout title="Home">
+  <h1 class="page-title">Northern Oregon Speedrunners Association</h1>
+
+  <p class="intro">
+    Welcome to the Northern Oregon Speedrunners Association database management system.
+    This application tracks speedrun submissions, players, games, categories, and platforms.
+    Use the pages below to browse and manage all data.
+  </p>
+
+  <div class="page-grid">
+    <a href="/players" class="page-card">
+      <h2>Players</h2>
+      <p>Browse, add, update, and delete speedrunner profiles. View display names and countries of origin for all registered players.</p>
+      <span class="card-link">Manage Players &rarr;</span>
+    </a>
+
+    <a href="/games" class="page-card">
+      <h2>Games</h2>
+      <p>Browse, add, update, and delete video games available for speedrunning. View game titles, release years, and developers.</p>
+      <span class="card-link">Manage Games &rarr;</span>
+    </a>
+
+    <a href="/platforms" class="page-card">
+      <h2>Platforms</h2>
+      <p>Browse, add, update, and delete gaming platforms (hardware/environments). Track all platforms that games can be played on.</p>
+      <span class="card-link">Manage Platforms &rarr;</span>
+    </a>
+
+    <a href="/run-categories" class="page-card">
+      <h2>Run Categories</h2>
+      <p>Browse, add, update, and delete speedrun category types for each game. Each category defines a ruleset for how a game can be speedrun.</p>
+      <span class="card-link">Manage Run Categories &rarr;</span>
+    </a>
+
+    <a href="/run-submissions" class="page-card">
+      <h2>Run Submissions</h2>
+      <p>Browse, add, update, and delete speedrun submissions. Each submission records a player's run time, game, platform, category, and verification status.</p>
+      <span class="card-link">Manage Run Submissions &rarr;</span>
+    </a>
+
+    <a href="/games-on-platforms" class="page-card">
+      <h2>Games on Platforms</h2>
+      <p>Browse, add, and remove game-platform associations. This M:N intersection table tracks which games are available on which platforms.</p>
+      <span class="card-link">Manage Associations &rarr;</span>
+    </a>
+  </div>
+
+  <div class="section-card">
+    <h2>Database Overview</h2>
+    <p>This database consists of 6 tables:</p>
+    <ul>
+      <li><strong>Players</strong> &mdash; Speedrunner participants (1:M with RunSubmissions)</li>
+      <li><strong>Games</strong> &mdash; Video games available for speedrunning (1:M with RunCategories, RunSubmissions; M:N with Platforms)</li>
+      <li><strong>Platforms</strong> &mdash; Hardware/environments for playing games (M:N with Games)</li>
+      <li><strong>RunCategories</strong> &mdash; Speedrun types per game with rulesets (1:M with RunSubmissions)</li>
+      <li><strong>RunSubmissions</strong> &mdash; Individual speedrun attempt records linking Players, Games, Platforms, and RunCategories</li>
+      <li><strong>GamesOnPlatforms</strong> &mdash; Intersection table for Games-Platforms M:N relationship</li>
+    </ul>
+  </div>
+</Layout>
+
 <style>
-  :root {
-    --bg: color(display-p3 0.768627 0.031373 0.031373 / 1.000000);
-    --ink: color(display-p3 0 0 0);
-    --depth-z: 2px;
-    --shadow-shift-x: 0.6px;
-    --shadow-shift-y: 0.9px;
+  .intro {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #374151;
+    margin-bottom: 2rem;
+    max-width: 800px;
   }
 
-  *, *::before, *::after {
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-  }
-
-  body {
-    margin: 0;
-    min-height: 100dvh;
+  .page-grid {
     display: grid;
-    place-items: center;
-    background: radial-gradient(120% 100% at 50% 10%, color(display-p3 0.827451 0.043137 0.043137 / 1.000000) 0%, var(--bg) 45%, color(display-p3 0.556863 0.015686 0.015686 / 1.000000) 100%);
-    color: var(--ink);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    perspective: 1000px;
-    overflow: hidden;
-  }
-
-  .stage {
-    position: relative;
-    transform-style: preserve-3d;
-    will-change: transform;
-    animation: microTilt 3s ease-in-out infinite alternate;
-  }
-
-  .stage::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform-style: preserve-3d;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at center, color(display-p3 1 1 1 / 0.05) 0%, transparent 70%);
-    transform: translateZ(-0.5px) scale(1.05);
-    pointer-events: none;
-    z-index: -1;
-  }
-
-  .card {
-    position: relative;
-    max-width: 65ch;
-    padding: clamp(2rem, 4vw, 4rem);
-    transform-style: preserve-3d;
-    overflow: hidden;
-    animation: microTilt 3.04s backwards infinite alternate;
-  }
-
-  h1 {
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0 0 1.5rem;
-    font-size: clamp(2rem, 5vw, 4rem);
-    transform: translateZ(var(--depth-z));
-    text-shadow:
-      0.2px 0.2px 0 color(display-p3 0.066667 0.094118 0.000000 / 1.000000),
-      0.6px 0.8px 0 color(display-p3 0.000000 0.023529 0.000000 / 1.000000),
-      0.8px 1.1px 0.6px color(display-p3 0.000000 0.015686 0.000000 / 1.000000);
-  }
-
-  h1::after {
-    content: attr(data-text);
-    position: absolute;
-    inset: 0;
-    color: var(--ink);
-    transform: translateZ(calc(var(--depth-z) * -1)) translate(var(--shadow-shift-x), var(--shadow-shift-y));
-    filter: blur(1.1px) opacity(0.18);
-    mix-blend-mode: multiply;
-    pointer-events: none;
-  }
-
-  h2 {
-    font-weight: 800;
-    font-size: 1.3rem;
-    margin: 1.5rem 0 0.8rem;
-    text-shadow: 0.4px 0.5px 0 #0003;
-    transform: translateZ(calc(var(--depth-z) * 0.25));
-    transform-style: preserve-3d;
-    animation: microTilt 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate;
-  }
-
-  p, pre {
-    font-size: 1.1rem;
-    line-height: 1.5;
-    letter-spacing: 0.003em;
-    margin-bottom: 1rem;
-    transform: translateZ(calc(var(--depth-z) * -0.5));
-    text-shadow: 0.5px 0.7px 2px rgba(0,0,0,0.07);
-    transform-style: preserve-3d;
-    animation: microTilt 3s cubic-bezier(0.4, 0.2, 0.6, 0.8) infinite alternate;
-    will-change: transform, text-shadow;
-  }
-
-  .result-box {
-    padding: 1.2rem;
-    background: rgba(0, 0, 0, 0.03);
-    border-radius: 4px;
-    margin-top: 1rem;
-  }
-
-  .result-label {
-    font-weight: 700;
-    font-size: 1rem;
-    margin-bottom: 0.8rem;
-    opacity: 0.95;
-  }
-
-  .result-value {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.95rem;
-    white-space: pre-wrap;
-    word-break: break-word;
-    text-shadow: none;
-    --shadow-intensity: 0;
-  }
-
-  .subtitle {
-    font-size: 0.9rem;
-    opacity: 0.8;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 2rem;
   }
 
-  @keyframes microTilt {
-    0% {
-      transform: rotateX(0.2deg) rotateY(-0.3deg) translateZ(0);
-    }
-    50% {
-      transform: rotateX(-0.3deg) rotateY(0.4deg) translateZ(0.5px);
-    }
-    100% {
-      transform: rotateX(0.15deg) rotateY(0.00deg) translateZ(0);
-    }
+  .page-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 4px solid #3b82f6;
+    transition: box-shadow 0.15s, transform 0.15s;
+    display: flex;
+    flex-direction: column;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .stage { animation: none; }
+  .page-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
   }
 
-  @media (max-width: 768px) {
-    h1 {
-      font-size: clamp(1.5rem, 5vw, 2.5rem);
-    }
+  .page-card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+  }
+
+  .page-card p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .card-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #3b82f6;
+    margin-top: 0.75rem;
+  }
+
+  .section-card ul {
+    margin: 0.5rem 0 0 1.5rem;
+    line-height: 1.8;
+  }
+
+  .section-card li {
+    font-size: 0.9rem;
+  }
+
+  .section-card p {
+    font-size: 0.9rem;
+    color: #374151;
   }
 </style>
-</head>
-<body>
-  <main class="stage" aria-label="CS340 Activity 2">
-    <section class="card">
-      <h1 data-text="MySQL Results">MySQL Results</h1>
-
-      <div class="result-box">
-        <p class="result-value">{JSON.stringify(rows, null, 2)}</p>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    window.addEventListener('load', () => {
-      const stage = document.querySelector('.stage') as HTMLElement;
-      if (!stage) return;
-
-
-      // Inject more extreme keyframes
-      const keyframes = `
-        @keyframes microTilt {
-          0%   { transform: rotateX(1deg) rotateY(-1.5deg) translateZ(0); text-shadow: 1.6px 1.2px 0 #0005; }
-          50%  { transform: rotateX(-1.5deg) rotateY(2deg) translateZ(1px); text-shadow: 1.4px 1.6px 0 #0005; }
-          100% { transform: rotateX(0.75deg) rotateY(0deg) translateZ(0); text-shadow: 1px 2.4px 0 #0005; }
-        }
-      `;
-      const style = document.createElement('style');
-      style.textContent = keyframes;
-      document.head.appendChild(style);
-
-      // Increase depth for more extreme 3D effect
-      document.documentElement.style.setProperty('--depth-z', '4px');
-
-      // Proximity-based text shadow on result-value
-      const resultValue = document.querySelector('.result-value') as HTMLElement;
-      if (resultValue) {
-        document.addEventListener('mousemove', (e) => {
-          const rect = resultValue.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-          const distance = Math.sqrt(
-            Math.pow(e.clientX - centerX, 2) +
-            Math.pow(e.clientY - centerY, 2)
-          );
-
-          const maxDistance = 150;
-          const intensity = Math.max(0, 1 - distance / maxDistance);
-
-          const blur = 2 * intensity;
-          const opacity = 0.07 * intensity;
-          if (intensity > 0) {
-            resultValue.style.cssText = `text-shadow: 0.5px 0.7px ${blur}px rgba(0,0,0,${opacity}) !important`;
-          } else {
-            resultValue.style.cssText = 'text-shadow: none !important';
-          }
-        });
-      }
-    });
-  </script>
-</body>
-</html>
