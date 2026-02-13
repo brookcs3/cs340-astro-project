@@ -9,7 +9,6 @@
 \usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{graphicx}
-\usepackage{amsmath}
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{enumitem}
@@ -87,13 +86,14 @@
 \begin{document}
 
 % =====================
-% Title (Header Image)
+% Title
 % =====================
 \begin{center}
-    \includegraphics[width=\textwidth]{header.png}
+    {\LARGE\bfseries CS340 -- Project Step 2 Draft}\\[0.5em]
+    {\large Group 101 | Cameron Brooks \& Brayden Plumb}\\[0.3em]
+    {\large Winter 2026}
 \end{center}
 
-\vspace{0.5em}
 \hrulefill
 
 % =====================
@@ -101,38 +101,36 @@
 % =====================
 \section*{a) Fixes Based on Feedback from Step 1}
 
-We received four peer reviews on our Draft submission. Below is a summary of the feedback and actions taken.
+We received four peer reviews on our Step 1 Draft submission. Below is a summary of the feedback and actions taken.
 
-\textbf{Reviewers:} Kain Sherman, Olivia Choi, Bryant Aragon, Lucas Feldsien.
+\textbf{Reviewers:} Kai Sherman, Olivia Choi, Bryant Aragon, Lucas Feldsien.
 
 \subsection*{Actions Based on Feedback}
 
-Based on the peer reviews above, we made the following corrections:
-
 \begin{enumerate}[leftmargin=2em]
-    \item \textbf{Naming Consistency -- Singular to Plural} (Kain Sherman): Changed all entity names from singular to plural (Game $\rightarrow$ Games, Player $\rightarrow$ Players, RunCategory $\rightarrow$ RunCategories, Platform $\rightarrow$ Platforms, RunSubmission $\rightarrow$ RunSubmissions) to follow the rubric's suggested convention.
+    \item \textbf{Naming Consistency -- Singular to Plural} (Kai Sherman): Changed all entity names from singular to plural (Game $\rightarrow$ Games, Player $\rightarrow$ Players, RunCategory $\rightarrow$ RunCategories, Platform $\rightarrow$ Platforms, RunSubmission $\rightarrow$ RunSubmissions).
 
-    \item \textbf{Intersection Table Naming Inconsistency} (Kain Sherman): Fixed the inconsistency between the ERD and Relationship Summary table. The table previously mentioned ``GamePlatforms'' while the ERD showed ``GameOnPlatform.'' We standardized to ``GamesOnPlatforms'' (plural, matching our other entity naming convention) across both the ERD and all documentation.
+    \item \textbf{Intersection Table Naming Inconsistency} (Kai Sherman): Standardized the intersection table name to ``GamesOnPlatforms'' across both the ERD and all documentation.
 
-    \item \textbf{Game-RunCategory Relationship Wording Confusion} (Kain Sherman, Lucas Feldsien): Both reviewers identified that the relationship description was contradictory -- the Game section implied one RunCategory could be associated with many Games, while the RunCategory section stated it could only belong to one Game. We corrected this by clarifying that the relationship is 1:M from Games to RunCategories: one Game can have multiple RunCategories, but each RunCategory belongs to exactly one Game. The gameID FK in RunCategories enforces this constraint.
+    \item \textbf{Game-RunCategory Relationship Wording} (Kai Sherman, Lucas Feldsien): Clarified that the relationship is 1:M from Games to RunCategories: one Game can have multiple RunCategories, but each RunCategory belongs to exactly one Game.
 
-    \item \textbf{Numerical Scope -- Annual Run Estimates} (Kain Sherman, Olivia Choi): Kain suggested more concrete numbers to scope the system, and Olivia specifically recommended estimating annual run submissions. We added the calculation: with 25--100 players per competition and 1--30 runs per player per year, the system is expected to handle approximately 750--3,000 run submissions annually.
+    \item \textbf{Annual Run Estimates} (Kai Sherman, Olivia Choi): Added estimate of approximately 750--3,000 run submissions annually based on 25--100 players $\times$ 1--30 runs per player.
 
-    \item \textbf{Entity Highlighting in Overview} (Kain Sherman): Added colored highlighting to entity names in the Overview section so they can be quickly mapped to the Database Outline, improving readability as suggested.
+    \item \textbf{Entity Highlighting in Overview} (Kai Sherman): Added colored highlighting to entity names in the Overview section.
 
-    \item \textbf{Verification Date Attribute} (Olivia Choi): Added \texttt{verifiedDate: date} attribute to RunSubmissions to track when a run was verified by an admin, supporting admin workflows and record-keeping as suggested.
+    \item \textbf{Verification Date Attribute} (Olivia Choi): Added \texttt{verifiedDate: date} attribute to RunSubmissions.
 
-    \item \textbf{User Roles Clarification} (Olivia Choi): Clarified in the Overview that the website will be ``editable by admins, and viewable by players,'' explicitly stating who will use the site and their primary actions as suggested.
+    \item \textbf{User Roles Clarification} (Olivia Choi): Clarified that the website will be ``editable by admins, and viewable by players.''
 
-    \item \textbf{Run Category Edge Cases} (Olivia Choi): Olivia asked whether every run submission must always belong to exactly one category. We confirm this is by design: each RunSubmission has a NOT NULL FK to RunCategories, enforcing that every run belongs to exactly one category. This matches standard speedrunning practice where runs are submitted to specific categories with distinct rulesets (e.g., a ``100\%'' run cannot simultaneously be an ``Any\%'' run).
+    \item \textbf{Run Category Edge Cases} (Olivia Choi): Confirmed each RunSubmission must belong to exactly one category (NOT NULL FK).
 \end{enumerate}
 
 \subsection*{Additional Design Changes for Step 2}
 
 \begin{itemize}[leftmargin=2em]
-    \item \textbf{Normalization Verified}: Applied the normalization process to all tables \textit{(details in the Normalization section below)}. All tables satisfy 3NF.
+    \item \textbf{Normalization Verified}: Applied the normalization process to all tables (details in Normalization section below). All tables satisfy 3NF.
     \item \textbf{CASCADE Constraints}: Added ON DELETE CASCADE and ON UPDATE CASCADE to all foreign key constraints, as recommended by the course materials.
-    \item \textbf{Schema Diagram}: Created based on DDL implementation, generated using phpMyAdmin Designer.
+    \item \textbf{Schema Diagram}: Created based on the DDL implementation.
     \item \textbf{Example Data}: Added 3--5 rows of sample data per table that demonstrate all relationship types in action.
 \end{itemize}
 
@@ -152,8 +150,6 @@ Based on the peer reviews above, we made the following corrections:
 Due to the limited needs of this system, they don't need a way to categorize the runs by the event they are a part of, and storing them by date is enough information for them to infer the event they are from. This then allows users to submit runs to be verified that they may complete from home by sending the info about their run to an administrator of the association.
 
 The association only wants \colorbox{submissioncolor!30}{\textbf{run submissions}} to be able to be submitted by admin board members of the association. They would like to be able to see the name of the \colorbox{playercolor!30}{\textbf{players}}, the runs they have successfully completed, what \colorbox{gamecolor!30}{\textbf{game}} they speedran, what \colorbox{categorycolor!30}{\textbf{run categories}} these runs are in, and what \colorbox{platformcolor!30}{\textbf{platform}} they were on when they completed the run. This information will serve as a record for all local speedrunners in the area to show off their previous times, and gives \textbf{Northern Oregon Speedrunners Association} a record to determine local speedrunning records. This website will be editable by admins, and viewable by players.
-
-\textit{Extra Note: To accommodate for players who may have moved to a different part of the world, the player entity will contain a country.}
 
 \subsection*{Database Outline}
 
@@ -298,7 +294,7 @@ Games $\rightarrow$ RunCategories & 1:M & gameID FK in RunCategories \\
 % =====================
 \section*{c) Entity-Relationship Diagram}
 
-\textit{Demonstrates a visual representation of the relationships between the entities listed above. Only primary keys are shown in the ERD; full attributes are listed in the Database Outline above and the Schema Diagram below.}
+\textit{The ER diagram below demonstrates the relationships between all entities. Only primary keys are shown in the ERD; full attributes are listed in the Database Outline above and the Schema Diagram below.}
 
 \begin{center}
     \includegraphics[width=\textwidth]{unnamed-3.png}
@@ -313,22 +309,22 @@ Games $\rightarrow$ RunCategories & 1:M & gameID FK in RunCategories \\
 % =====================
 \section*{Normalization Analysis}
 
-We applied the normalization process that we learned about in the Exploration -- Normalization Steps. We started by examining a hypothetical sample report (similar to the construction company example from the exploration) and checked for redundancies and anomalies.
+We applied the normalization process as described in the Exploration -- Normalization Steps. We started by examining a hypothetical sample report (similar to the construction company example from the exploration) and checked for redundancies and anomalies.
 
 \subsection*{Hypothetical Denormalized Report}
 
-Consider a report of various speedruns that an administrator would want to add to the database, listing all run submissions based on the following criteria:
+Consider a flat report that an admin might want to generate -- listing all run submissions with full details:
 
 \begin{center}
-\footnotesize
-\begin{tabular}{llllllll}
+\small
+\begin{tabular}{p{1.5cm}p{1.2cm}p{2cm}p{1.5cm}p{1.8cm}p{1.2cm}p{1.5cm}p{1cm}}
 \toprule
 \textbf{Player} & \textbf{Country} & \textbf{Game} & \textbf{Developer} & \textbf{Category} & \textbf{Platform} & \textbf{RunTime} & \textbf{Verified} \\
 \midrule
-SpeedDemon42 & US & Mario 64 & Nintendo & Any\% & N64 & 15:35 & Yes \\
-SpeedDemon42 & US & Mario 64 & Nintendo & 16 Star & N64 & 49:12 & Yes \\
+SpeedDemon42 & US & Super Mario 64 & Nintendo & Any\% & N64 & 15:35 & Yes \\
+SpeedDemon42 & US & Super Mario 64 & Nintendo & 16 Star & N64 & 49:12 & Yes \\
 PixelRunner & CA & Zelda: OoT & Nintendo & Any\% & Switch & 18:22 & No \\
-GlitchHunter & US & Celeste & MaddyMakes & Any\% & PC & 32:45 & Yes \\
+GlitchHunter & US & Celeste & Maddy Makes & Any\% & PC & 32:45 & Yes \\
 NightOwlPlays & JP & Portal & Valve & Inbounds & PC & 14:08 & No \\
 \bottomrule
 \end{tabular}
@@ -347,7 +343,7 @@ If all data were stored in a single flat table:
 
 \subsection*{1NF Verification}
 
-All tables in the final Schema are in 1NF:
+All tables are in 1NF:
 \begin{itemize}[leftmargin=2em]
     \item Every table has a defined primary key (no repeating groups).
     \item All attributes contain atomic values (single value per cell, no lists or sets).
@@ -356,15 +352,15 @@ All tables in the final Schema are in 1NF:
 
 \subsection*{2NF Verification}
 
-All tables in the final Schema are in 2NF:
+All tables are in 2NF:
 \begin{itemize}[leftmargin=2em]
     \item No table has a composite primary key with partial dependencies. Players, Games, Platforms, RunCategories, and RunSubmissions all use single-column auto-increment primary keys, so partial dependency is impossible.
-    \item The GamesOnPlatforms table contains no non-key attributes beyond the two foreign keys, so there are no partial dependencies.
+    \item The GamesOnPlatforms table has a surrogate PK (\texttt{gameOnPlatformID}) and a unique constraint on (\texttt{gameID}, \texttt{platformID}). The table contains no non-key attributes beyond the two foreign keys, so there are no partial dependencies.
 \end{itemize}
 
 \subsection*{3NF Verification}
 
-All tables in the final Schema are in 3NF:
+All tables are in 3NF:
 \begin{itemize}[leftmargin=2em]
     \item \textbf{Players}: \texttt{playerID} $\rightarrow$ \texttt{displayName}, \texttt{country}. No transitive dependency (country does not determine any other non-key attribute).
     \item \textbf{Games}: \texttt{gameID} $\rightarrow$ \texttt{title}, \texttt{releaseYear}, \texttt{developer}. No transitive dependency (developer is an independent non-key attribute and does not functionally determine \texttt{title} or \texttt{releaseYear}; multiple games can share the same developer while having different titles and release years, so there is no transitive dependency among non-key attributes).
@@ -383,15 +379,9 @@ All tables in the final Schema are in 3NF:
 % =====================
 \section*{d) Schema Diagram}
 
-The schema diagram below was generated from phpMyAdmin Designer after importing the DDL into the CS340 class database on the ENGR server. It shows all tables, their columns, primary keys, and foreign key relationships.
-
-\begin{center}
-    \includegraphics[width=\textwidth]{schema-diagram.png}
-\end{center}
+The schema diagram below represents the final normalized database design. All tables, their attributes, primary keys (PK), and foreign keys (FK) are shown, along with the relationships between tables.
 
 \textit{Note: This schema matches the Database Outline and ERD exactly. All foreign keys use ON DELETE CASCADE and ON UPDATE CASCADE constraints.}
-
-The following tables provide a detailed textual reference for each table's attributes and constraints:
 
 \vspace{1em}
 
@@ -527,7 +517,7 @@ Games & $\xleftrightarrow{\text{M:N}}$ & Platforms \textit{(via GamesOnPlatforms
 % =====================
 \section*{e) Example Data}
 
-The following tables show the sample data inserted into each table. This data is included in the accompanying DDL.sql file via INSERT statements. The data demonstrates how foreign keys enforce the 1:M relationships between the entities, and how the intersection table shows the M:N relationship in action.
+The following tables show the sample data inserted into each table. This data is included in the accompanying DDL.sql file via INSERT statements. The data demonstrates how foreign keys enforce 1:M relationships and how the intersection table shows the M:N relationship in action.
 
 \subsection*{Players (5 rows)}
 
@@ -545,6 +535,8 @@ The following tables show the sample data inserted into each table. This data is
 \end{tabular}
 \end{center}
 
+\textit{Note: TurboTina (playerID=5) has no RunSubmissions, demonstrating that a Player can exist without runs.}
+
 \subsection*{Games (4 rows)}
 
 \begin{center}
@@ -559,24 +551,6 @@ The following tables show the sample data inserted into each table. This data is
 \bottomrule
 \end{tabular}
 \end{center}
-
-\subsection*{RunCategories (5 rows)}
-
-\begin{center}
-\begin{tabular}{clp{5cm}c}
-\toprule
-\textbf{runCategoryID} & \textbf{name} & \textbf{ruleset} & \textbf{gameID (FK)} \\
-\midrule
-1 & Any\% & Complete the game as fast as possible by any means. & 1 \\
-2 & 16 Star & Complete the game collecting exactly 16 stars. & 1 \\
-3 & Any\% & Complete the game as fast as possible by any means. & 2 \\
-4 & Any\% & Complete the game as fast as possible by any means. & 3 \\
-5 & Inbounds & Complete all chambers without leaving intended boundaries. & 4 \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textit{Note: Game 1 (Super Mario 64) has two categories (Any\% and 16 Star), demonstrating the 1:M relationship from Games to RunCategories. Each category name like ``Any\%'' can appear for different games with different rulesets, but each row belongs to exactly one game.}
 
 \subsection*{Platforms (4 rows)}
 
@@ -595,24 +569,23 @@ The following tables show the sample data inserted into each table. This data is
 
 \textit{Note: PlayStation 5 (platformID=4) has no games in GamesOnPlatforms, demonstrating that a Platform can exist without associated games.}
 
-\subsection*{RunSubmissions (5 rows)}
+\subsection*{RunCategories (5 rows)}
 
 \begin{center}
-\small
-\begin{tabular}{ccccccccc}
+\begin{tabular}{clp{5cm}c}
 \toprule
-\textbf{ID} & \textbf{runTime} & \textbf{subDate} & \textbf{verified} & \textbf{verifiedDate} & \textbf{playerID} & \textbf{gameID} & \textbf{platID} & \textbf{catID} \\
+\textbf{runCategoryID} & \textbf{name} & \textbf{ruleset} & \textbf{gameID (FK)} \\
 \midrule
-1 & 00:15:35.230 & 2026-01-10 & TRUE & 2026-01-11 & 1 & 1 & 2 & 1 \\
-2 & 00:49:12.800 & 2026-01-15 & TRUE & 2026-01-16 & 1 & 1 & 2 & 2 \\
-3 & 00:18:22.450 & 2026-01-20 & FALSE & NULL & 2 & 2 & 3 & 3 \\
-4 & 00:32:45.110 & 2026-02-01 & TRUE & 2026-02-02 & 3 & 3 & 1 & 4 \\
-5 & 00:14:08.670 & 2026-02-03 & FALSE & NULL & 4 & 4 & 1 & 5 \\
+1 & Any\% & Complete the game as fast as possible by any means. & 1 \\
+2 & 16 Star & Complete the game collecting exactly 16 stars. & 1 \\
+3 & Any\% & Complete the game as fast as possible by any means. & 2 \\
+4 & Any\% & Complete the game as fast as possible by any means. & 3 \\
+5 & Inbounds & Complete all chambers without leaving intended boundaries. & 4 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textit{Note: Column headers abbreviated for readability. Full column names: runSubmissionID, runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID. The videoLink column is omitted from the table for space but is included in the DDL.sql file.}
+\textit{Note: Game 1 (Super Mario 64) has two categories (Any\% and 16 Star), demonstrating the 1:M relationship from Games to RunCategories. Each category name like ``Any\%'' can appear for different games with different rulesets, but each row belongs to exactly one game.}
 
 \subsection*{GamesOnPlatforms (7 rows) -- Intersection Table}
 
@@ -634,6 +607,25 @@ The following tables show the sample data inserted into each table. This data is
 
 \textit{M:N demonstration: Game 1 (Super Mario 64) appears on 3 platforms (N64, Switch, PC). Platform 1 (PC) hosts 3 games (Super Mario 64, Celeste, Portal). This shows the many-to-many relationship in action.}
 
+\subsection*{RunSubmissions (5 rows)}
+
+\begin{center}
+\small
+\begin{tabular}{ccccccccc}
+\toprule
+\textbf{ID} & \textbf{runTime} & \textbf{subDate} & \textbf{verified} & \textbf{verifiedDate} & \textbf{playerID} & \textbf{gameID} & \textbf{platID} & \textbf{catID} \\
+\midrule
+1 & 00:15:35.230 & 2026-01-10 & TRUE & 2026-01-11 & 1 & 1 & 2 & 1 \\
+2 & 00:49:12.800 & 2026-01-15 & TRUE & 2026-01-16 & 1 & 1 & 2 & 2 \\
+3 & 00:18:22.450 & 2026-01-20 & FALSE & NULL & 2 & 2 & 3 & 3 \\
+4 & 00:32:45.110 & 2026-02-01 & TRUE & 2026-02-02 & 3 & 3 & 1 & 4 \\
+5 & 00:14:08.670 & 2026-02-03 & FALSE & NULL & 4 & 4 & 1 & 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Note: Column headers abbreviated for readability. Full column names: runSubmissionID, runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID. The videoLink column is omitted from the table for space but is included in the DDL.sql file.}
+
 \textbf{Relationship demonstrations:}
 \begin{itemize}[leftmargin=2em]
     \item \textbf{1:M Players$\rightarrow$RunSubmissions}: Player 1 (SpeedDemon42) has 2 runs (IDs 1 and 2), while Player 5 (TurboTina) has 0 runs.
@@ -654,7 +646,7 @@ None. All content of this proposal is our original work.
 
 \vfill
 \begin{center}
-\textit{Group 101 -- Cameron Brooks \& Brayden Plumb -- CS340 Winter 2026}
+\textit{Group 101 | Cameron Brooks \& Brayden Plumb | CS340 Winter 2026}
 \end{center}
 
 \end{document}
