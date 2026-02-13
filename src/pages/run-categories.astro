@@ -8,6 +8,38 @@ import { getConnection } from '../lib/db';
 let categories: any[] = [];
 let games: any[] = [];
 let error = '';
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'insert') {
+      const name = form.get('name');
+      const gameID = form.get('gameID');
+      const ruleset = form.get('ruleset') || null;
+      await db.execute('INSERT INTO RunCategories (name, ruleset, gameID) VALUES (?, ?, ?)', [name, ruleset, gameID]);
+      message = `Run category "${name}" added.`;
+    } else if (action === 'update') {
+      const runCategoryID = form.get('runCategoryID');
+      const name = form.get('name');
+      const gameID = form.get('gameID');
+      const ruleset = form.get('ruleset') || null;
+      await db.execute('UPDATE RunCategories SET name = ?, ruleset = ?, gameID = ? WHERE runCategoryID = ?', [name, ruleset, gameID, runCategoryID]);
+      message = `Run category ${runCategoryID} updated.`;
+    } else if (action === 'delete') {
+      const runCategoryID = form.get('runCategoryID');
+      await db.execute('DELETE FROM RunCategories WHERE runCategoryID = ?', [runCategoryID]);
+      message = `Run category ${runCategoryID} deleted.`;
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 
 try {
   const db = await getConnection();
@@ -31,6 +63,7 @@ try {
 <Layout title="Run Categories">
   <h1 class="page-title">Run Categories</h1>
 
+  {message && <p style="color: green; font-weight: bold;">{message}</p>}
   {error && <p style="color: red;">Database error: {error}</p>}
 
   <!-- Browse All Run Categories -->

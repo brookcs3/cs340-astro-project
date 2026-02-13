@@ -7,6 +7,34 @@ import { getConnection } from '../lib/db';
 
 let platforms: any[] = [];
 let error = '';
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'insert') {
+      const name = form.get('name');
+      await db.execute('INSERT INTO Platforms (name) VALUES (?)', [name]);
+      message = `Platform "${name}" added.`;
+    } else if (action === 'update') {
+      const platformID = form.get('platformID');
+      const name = form.get('name');
+      await db.execute('UPDATE Platforms SET name = ? WHERE platformID = ?', [name, platformID]);
+      message = `Platform ${platformID} updated.`;
+    } else if (action === 'delete') {
+      const platformID = form.get('platformID');
+      await db.execute('DELETE FROM Platforms WHERE platformID = ?', [platformID]);
+      message = `Platform ${platformID} deleted.`;
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 
 try {
   const db = await getConnection();
@@ -21,6 +49,7 @@ try {
 <Layout title="Platforms">
   <h1 class="page-title">Platforms</h1>
 
+  {message && <p style="color: green; font-weight: bold;">{message}</p>}
   {error && <p style="color: red;">Database error: {error}</p>}
 
   <!-- Browse All Platforms -->

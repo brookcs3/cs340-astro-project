@@ -7,6 +7,38 @@ import { getConnection } from '../lib/db';
 
 let games: any[] = [];
 let error = '';
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'insert') {
+      const title = form.get('title');
+      const releaseYear = form.get('releaseYear') || null;
+      const developer = form.get('developer') || null;
+      await db.execute('INSERT INTO Games (title, releaseYear, developer) VALUES (?, ?, ?)', [title, releaseYear, developer]);
+      message = `Game "${title}" added.`;
+    } else if (action === 'update') {
+      const gameID = form.get('gameID');
+      const title = form.get('title');
+      const releaseYear = form.get('releaseYear') || null;
+      const developer = form.get('developer') || null;
+      await db.execute('UPDATE Games SET title = ?, releaseYear = ?, developer = ? WHERE gameID = ?', [title, releaseYear, developer, gameID]);
+      message = `Game ${gameID} updated.`;
+    } else if (action === 'delete') {
+      const gameID = form.get('gameID');
+      await db.execute('DELETE FROM Games WHERE gameID = ?', [gameID]);
+      message = `Game ${gameID} deleted.`;
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 
 try {
   const db = await getConnection();
@@ -21,6 +53,7 @@ try {
 <Layout title="Games">
   <h1 class="page-title">Games</h1>
 
+  {message && <p style="color: green; font-weight: bold;">{message}</p>}
   {error && <p style="color: red;">Database error: {error}</p>}
 
   <!-- Browse All Games -->

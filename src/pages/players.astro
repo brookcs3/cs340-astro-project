@@ -7,6 +7,36 @@ import { getConnection } from '../lib/db';
 
 let players: any[] = [];
 let error = '';
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'insert') {
+      const displayName = form.get('displayName');
+      const country = form.get('country') || null;
+      await db.execute('INSERT INTO Players (displayName, country) VALUES (?, ?)', [displayName, country]);
+      message = `Player "${displayName}" added.`;
+    } else if (action === 'update') {
+      const playerID = form.get('playerID');
+      const displayName = form.get('displayName');
+      const country = form.get('country') || null;
+      await db.execute('UPDATE Players SET displayName = ?, country = ? WHERE playerID = ?', [displayName, country, playerID]);
+      message = `Player ${playerID} updated.`;
+    } else if (action === 'delete') {
+      const playerID = form.get('playerID');
+      await db.execute('DELETE FROM Players WHERE playerID = ?', [playerID]);
+      message = `Player ${playerID} deleted.`;
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 
 try {
   const db = await getConnection();
@@ -21,6 +51,7 @@ try {
 <Layout title="Players">
   <h1 class="page-title">Players</h1>
 
+  {message && <p style="color: green; font-weight: bold;">{message}</p>}
   {error && <p style="color: red;">Database error: {error}</p>}
 
   <!-- Browse All Players -->

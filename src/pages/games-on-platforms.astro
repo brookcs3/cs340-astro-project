@@ -9,6 +9,30 @@ let associations: any[] = [];
 let games: any[] = [];
 let platforms: any[] = [];
 let error = '';
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'insert') {
+      const gameID = form.get('gameID');
+      const platformID = form.get('platformID');
+      await db.execute('INSERT INTO GamesOnPlatforms (gameID, platformID) VALUES (?, ?)', [gameID, platformID]);
+      message = 'Game-platform association added.';
+    } else if (action === 'delete') {
+      const gameOnPlatformID = form.get('gameOnPlatformID');
+      await db.execute('DELETE FROM GamesOnPlatforms WHERE gameOnPlatformID = ?', [gameOnPlatformID]);
+      message = `Association ${gameOnPlatformID} removed.`;
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 
 try {
   const db = await getConnection();
@@ -38,6 +62,7 @@ try {
 <Layout title="Games on Platforms">
   <h1 class="page-title">Games on Platforms</h1>
 
+  {message && <p style="color: green; font-weight: bold;">{message}</p>}
   {error && <p style="color: red;">Database error: {error}</p>}
 
   <!-- Browse All Associations -->

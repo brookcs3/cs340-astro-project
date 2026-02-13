@@ -11,6 +11,56 @@ let games: any[] = [];
 let platforms: any[] = [];
 let categories: any[] = [];
 let error = '';
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'insert') {
+      const playerID = form.get('playerID');
+      const gameID = form.get('gameID');
+      const platformID = form.get('platformID');
+      const runCategoryID = form.get('runCategoryID');
+      const runTime = form.get('runTime');
+      const submissionDate = form.get('submissionDate');
+      const verified = form.get('verified');
+      const verifiedDate = form.get('verifiedDate') || null;
+      const videoLink = form.get('videoLink') || null;
+      await db.execute(
+        'INSERT INTO RunSubmissions (runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink]
+      );
+      message = 'Run submission added.';
+    } else if (action === 'update') {
+      const runSubmissionID = form.get('runSubmissionID');
+      const playerID = form.get('playerID');
+      const gameID = form.get('gameID');
+      const platformID = form.get('platformID');
+      const runCategoryID = form.get('runCategoryID');
+      const runTime = form.get('runTime');
+      const submissionDate = form.get('submissionDate');
+      const verified = form.get('verified');
+      const verifiedDate = form.get('verifiedDate') || null;
+      const videoLink = form.get('videoLink') || null;
+      await db.execute(
+        'UPDATE RunSubmissions SET runTime = ?, submissionDate = ?, verified = ?, verifiedDate = ?, playerID = ?, gameID = ?, platformID = ?, runCategoryID = ?, videoLink = ? WHERE runSubmissionID = ?',
+        [runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink, runSubmissionID]
+      );
+      message = `Run submission ${runSubmissionID} updated.`;
+    } else if (action === 'delete') {
+      const runSubmissionID = form.get('runSubmissionID');
+      await db.execute('DELETE FROM RunSubmissions WHERE runSubmissionID = ?', [runSubmissionID]);
+      message = `Run submission ${runSubmissionID} deleted.`;
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
 
 try {
   const db = await getConnection();
@@ -63,6 +113,7 @@ function formatDate(d: any): string {
 <Layout title="Run Submissions">
   <h1 class="page-title">Run Submissions</h1>
 
+  {message && <p style="color: green; font-weight: bold;">{message}</p>}
   {error && <p style="color: red;">Database error: {error}</p>}
 
   <!-- Browse All Run Submissions -->
