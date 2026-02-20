@@ -102,6 +102,66 @@ Then restart the dev server (`npm run dev`).
 
 ---
 
+## Deploying to the ENGR Classwork Server
+
+This is how the app was deployed to `http://classwork.engr.oregonstate.edu:8742`. Use these steps to redeploy after changes.
+
+### 1. SSH into classwork
+```bash
+ssh classwork
+# (shortcut for: ssh brooksc3@classwork.engr.oregonstate.edu)
+```
+
+### 2. Navigate to the project
+```bash
+cd ~/CS340/project
+```
+
+### 3. Pull latest changes
+```bash
+export PATH=~/.nvm/versions/node/v18.20.8/bin:$PATH
+git pull origin main
+npm install
+```
+
+### 4. Rebuild the Astro app
+```bash
+npm run build
+```
+
+### 5. Restart the server with `forever`
+```bash
+# Stop the old process
+npx forever stopall
+
+# Start the new build
+npx forever start start.cjs
+```
+
+### 6. Verify it's running
+```bash
+npx forever list
+curl -s -o /dev/null -w '%{http_code}' http://localhost:8742/
+# Should print: 200
+```
+
+### How it works
+- `start.cjs` is a Node wrapper that sets the environment variables (DB credentials, host, port) and then imports the built Astro server (`dist/server/entry.mjs`)
+- `forever` keeps the process alive in the background even after you disconnect from SSH
+- The server listens on `0.0.0.0:8742` so it's accessible at `http://classwork.engr.oregonstate.edu:8742`
+- The classwork server can reach `classmysql.engr.oregonstate.edu` directly (no VPN needed server-side)
+
+### Key files on the server
+```
+~/CS340/project/          # Git clone of the repo
+~/CS340/project/.env      # DB credentials (not in git)
+~/CS340/project/start.cjs # Node wrapper with env vars
+~/CS340/project/dist/     # Built Astro output (from npm run build)
+~/CS340/activity2/        # Old Activity 2 project (no longer running)
+```
+
+---
+
 ## Troubleshooting
 
 | Problem | Solution |
