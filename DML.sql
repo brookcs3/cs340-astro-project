@@ -135,6 +135,8 @@ DELETE FROM RunCategories WHERE runCategoryID = :runCategoryIDInput;
 
 -- SELECT: Get all run submissions with associated entity names
 -- for display in the Browse Run Submissions table
+-- Note: LEFT JOIN on Players because playerID is NULLable (ON DELETE SET NULL).
+-- If a player is deleted, the submission is preserved with playerName = NULL.
 SELECT rs.runSubmissionID, rs.runTime, rs.submissionDate, rs.verified,
        rs.verifiedDate, rs.videoLink,
        rs.playerID, p.displayName AS playerName,
@@ -142,7 +144,7 @@ SELECT rs.runSubmissionID, rs.runTime, rs.submissionDate, rs.verified,
        rs.platformID, pl.name AS platformName,
        rs.runCategoryID, rc.name AS categoryName
 FROM RunSubmissions rs
-INNER JOIN Players p ON rs.playerID = p.playerID
+LEFT JOIN Players p ON rs.playerID = p.playerID
 INNER JOIN Games g ON rs.gameID = g.gameID
 INNER JOIN Platforms pl ON rs.platformID = pl.platformID
 INNER JOIN RunCategories rc ON rs.runCategoryID = rc.runCategoryID
@@ -188,6 +190,13 @@ SET runTime = :runTimeInput,
     platformID = :platformIDInput,
     runCategoryID = :runCategoryIDInput,
     videoLink = :videoLinkInput
+WHERE runSubmissionID = :runSubmissionIDInput;
+
+-- UPDATE: Set playerID to NULL (disassociate a player from a run submission)
+-- This demonstrates the NULLable FK relationship: playerID can be set to NULL
+-- either manually via this UPDATE or automatically via ON DELETE SET NULL.
+UPDATE RunSubmissions
+SET playerID = NULL
 WHERE runSubmissionID = :runSubmissionIDInput;
 
 -- DELETE: Remove a run submission from the database

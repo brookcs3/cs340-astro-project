@@ -20,7 +20,7 @@ if (Astro.request.method === 'POST') {
     const db = await getConnection();
 
     if (action === 'insert') {
-      const playerID = form.get('playerID');
+      const playerID = form.get('playerID') || null;
       const gameID = form.get('gameID');
       const platformID = form.get('platformID');
       const runCategoryID = form.get('runCategoryID');
@@ -36,7 +36,7 @@ if (Astro.request.method === 'POST') {
       message = 'Run submission added.';
     } else if (action === 'update') {
       const runSubmissionID = form.get('runSubmissionID');
-      const playerID = form.get('playerID');
+      const playerID = form.get('playerID') || null;
       const gameID = form.get('gameID');
       const platformID = form.get('platformID');
       const runCategoryID = form.get('runCategoryID');
@@ -73,7 +73,7 @@ try {
            rs.platformID, pl.name AS platformName,
            rs.runCategoryID, rc.name AS categoryName
     FROM RunSubmissions rs
-    INNER JOIN Players p ON rs.playerID = p.playerID
+    LEFT JOIN Players p ON rs.playerID = p.playerID
     INNER JOIN Games g ON rs.gameID = g.gameID
     INNER JOIN Platforms pl ON rs.platformID = pl.platformID
     INNER JOIN RunCategories rc ON rs.runCategoryID = rc.runCategoryID
@@ -144,7 +144,7 @@ function formatDate(d: any): string {
           {submissions.map((sub) => (
             <tr>
               <td>{sub.runSubmissionID}</td>
-              <td>{sub.playerName}</td>
+              <td>{sub.playerName || <span class="null-value">NULL</span>}</td>
               <td>{sub.gameTitle}</td>
               <td>{sub.categoryName}</td>
               <td>{sub.platformName}</td>
@@ -162,7 +162,7 @@ function formatDate(d: any): string {
                 <div class="actions">
                   <button class="btn btn-warning btn-sm" onclick={`
                     document.getElementById('edit-id').value='${sub.runSubmissionID}';
-                    document.getElementById('edit-playerID').value='${sub.playerID}';
+                    document.getElementById('edit-playerID').value='${sub.playerID || ''}';
                     document.getElementById('edit-gameID').value='${sub.gameID}';
                     document.getElementById('edit-platformID').value='${sub.platformID}';
                     document.getElementById('edit-runCategoryID').value='${sub.runCategoryID}';
@@ -195,9 +195,9 @@ function formatDate(d: any): string {
       <input type="hidden" name="action" value="insert" />
       <div class="form-grid">
         <div class="form-group">
-          <label for="add-playerID">Player *</label>
-          <select id="add-playerID" name="playerID" required>
-            <option value="">-- Select a Player --</option>
+          <label for="add-playerID">Player</label>
+          <select id="add-playerID" name="playerID">
+            <option value="">-- No Player (NULL) --</option>
             {players.map((p) => (
               <option value={p.playerID}>{p.displayName}</option>
             ))}
@@ -274,9 +274,9 @@ function formatDate(d: any): string {
           <span class="hint">Auto-filled when clicking Edit</span>
         </div>
         <div class="form-group">
-          <label for="edit-playerID">Player *</label>
-          <select id="edit-playerID" name="playerID" required>
-            <option value="">-- Select a Player --</option>
+          <label for="edit-playerID">Player</label>
+          <select id="edit-playerID" name="playerID">
+            <option value="">-- No Player (NULL) --</option>
             {players.map((p) => (
               <option value={p.playerID}>{p.displayName}</option>
             ))}

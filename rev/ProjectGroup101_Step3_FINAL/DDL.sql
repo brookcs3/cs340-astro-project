@@ -67,8 +67,6 @@ CREATE TABLE RunCategories (
 -- Description: A specific speedrun record with all information about
 --              that speedrun attempt. Central entity linking Players,
 --              Games, Platforms, and RunCategories.
--- Note: playerID uses ON DELETE SET NULL so that when a Player is deleted,
---       their run submissions are preserved with playerID = NULL (anonymous).
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS RunSubmissions;
 CREATE TABLE RunSubmissions (
@@ -77,14 +75,14 @@ CREATE TABLE RunSubmissions (
     submissionDate date NOT NULL,
     verified boolean DEFAULT FALSE,
     verifiedDate date,
-    playerID int,
+    playerID int NOT NULL,
     gameID int NOT NULL,
     platformID int NOT NULL,
     runCategoryID int NOT NULL,
     videoLink varchar(2048),
     PRIMARY KEY (runSubmissionID),
     FOREIGN KEY (playerID) REFERENCES Players(playerID)
-        ON DELETE SET NULL
+        ON DELETE CASCADE
         ON UPDATE CASCADE,
     FOREIGN KEY (gameID) REFERENCES Games(gameID)
         ON DELETE CASCADE

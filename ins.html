@@ -428,7 +428,29 @@ ON DELETE SET NULL ON UPDATE CASCADE;</code></pre>
                         <div class="bg-slate-800 rounded-lg p-4">
                             <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
                                 <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">2</span>
-                                Update run-submissions.astro (Display NULL)
+                                Update run-submissions.astro (SELECT query — CRITICAL)
+                            </h4>
+<pre><code class="language-sql">-- CHANGE the SELECT from INNER JOIN to LEFT JOIN
+-- Otherwise submissions with NULL playerID won't appear at all!
+
+SELECT rs.runSubmissionID, rs.completionTime, rs.videoLink,
+       rs.verifiedDate, p.displayName AS playerName,
+       rc.name AS categoryName
+FROM RunSubmissions rs
+LEFT JOIN Players p ON rs.playerID = p.playerID
+INNER JOIN RunCategories rc ON rs.runCategoryID = rc.runCategoryID
+ORDER BY rs.runSubmissionID</code></pre>
+                            <div class="callout callout-danger mt-2">
+                                <p class="text-xs text-danger/80 m-0">
+                                    <strong>Why LEFT JOIN?</strong> With INNER JOIN, any submission where playerID = NULL would be silently hidden from the browse table. LEFT JOIN ensures those rows still appear with NULL for the player name.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">3</span>
+                                Update run-submissions.astro (Display NULL in browse table)
                             </h4>
 <pre><code class="language-html">&lt;!-- In the browse table --&gt;
 &lt;td&gt;{row.playerName || &lt;span class="null-value"&gt;NULL&lt;/span&gt;}&lt;/td&gt;</code></pre>
@@ -437,8 +459,8 @@ ON DELETE SET NULL ON UPDATE CASCADE;</code></pre>
 
                         <div class="bg-slate-800 rounded-lg p-4">
                             <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">3</span>
-                                Update run-submissions.astro (Add Form)
+                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">4</span>
+                                Update run-submissions.astro (Add Form — allow NULL player)
                             </h4>
 <pre><code class="language-html">&lt;select name="playerID"&gt;
   &lt;option value=""&gt;-- No Player (NULL) --&lt;/option&gt;
@@ -451,11 +473,39 @@ ON DELETE SET NULL ON UPDATE CASCADE;</code></pre>
 
                         <div class="bg-slate-800 rounded-lg p-4">
                             <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">4</span>
+                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">5</span>
+                                Update run-submissions.astro (Update Form — allow setting FK to NULL)
+                            </h4>
+<pre><code class="language-html">&lt;!-- The Update form's player dropdown ALSO needs the NULL option --&gt;
+&lt;select name="playerID" id="edit-playerID"&gt;
+  &lt;option value=""&gt;-- No Player (NULL) --&lt;/option&gt;
+  {players.map(p => (
+    &lt;option value={p.playerID}&gt;{p.displayName}&lt;/option&gt;
+  ))}
+&lt;/select&gt;</code></pre>
+                            <div class="callout callout-warning mt-2">
+                                <p class="text-xs text-warning/80 m-0">
+                                    <strong>Rubric requirement:</strong> "At least one UPDATE sets a FK to NULL." The Update form MUST allow selecting the empty/NULL option for playerID. This is how the grader will test it.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">6</span>
                                 Update DML.sql
                             </h4>
 <pre><code class="language-sql">-- Document the new constraint behavior
 -- When a Player is deleted, their RunSubmissions.playerID becomes NULL
+
+-- Updated SELECT with LEFT JOIN for NULLable FK
+SELECT rs.runSubmissionID, rs.completionTime, rs.videoLink,
+       rs.verifiedDate, p.displayName AS playerName,
+       rc.name AS categoryName
+FROM RunSubmissions rs
+LEFT JOIN Players p ON rs.playerID = p.playerID
+INNER JOIN RunCategories rc ON rs.runCategoryID = rc.runCategoryID
+ORDER BY rs.runSubmissionID;
 
 -- UPDATE that sets FK to NULL
 UPDATE RunSubmissions
@@ -465,7 +515,28 @@ WHERE runSubmissionID = :runSubmissionID;</code></pre>
 
                         <div class="bg-slate-800 rounded-lg p-4">
                             <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">5</span>
+                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">7</span>
+                                Run ALTER TABLE on Production Database
+                            </h4>
+                            <p class="text-sm text-slate-400 mb-2">
+                                Updating <code class="text-astro">DDL.sql</code> only changes the file — you also need to run the ALTER statements on the <strong>live database</strong>:
+                            </p>
+                            <ol class="text-sm text-slate-300 space-y-2 mb-2">
+                                <li>1. Go to <code class="text-astro">https://classmysql.engr.oregonstate.edu/phpmyadmin</code></li>
+                                <li>2. Select the <code class="text-astro">cs340_brooksc3</code> database</li>
+                                <li>3. Click the <strong>SQL</strong> tab</li>
+                                <li>4. Paste and run the three ALTER TABLE statements from Step 1 above</li>
+                            </ol>
+                            <div class="callout callout-danger mt-2">
+                                <p class="text-xs text-danger/80 m-0">
+                                    <strong>Don't skip this!</strong> If you only edit DDL.sql but don't run the ALTER on the live DB, the constraint won't actually exist and the grader will see ON DELETE CASCADE behavior.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800 rounded-lg p-4">
+                            <h4 class="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">8</span>
                                 Rebuild and Deploy
                             </h4>
 <pre><code class="language-bash">npm run build
@@ -981,7 +1052,8 @@ npx forever list</code></pre>
                             </div>
                             <input type="checkbox" class="sr-only" data-progress>
                             <div>
-                                <p class="text-sm text-slate-200 group-hover:text-white">Update run-submissions.astro to display NULL values</p>
+                                <p class="text-sm text-slate-200 group-hover:text-white">Run ALTER TABLE statements on production database (phpMyAdmin)</p>
+                                <p class="text-xs text-slate-500">DDL.sql only changes the file — you must also run it on the live DB</p>
                             </div>
                         </label>
                         <label class="checklist-item flex items-start gap-3 cursor-pointer group">
@@ -990,7 +1062,36 @@ npx forever list</code></pre>
                             </div>
                             <input type="checkbox" class="sr-only" data-progress>
                             <div>
-                                <p class="text-sm text-slate-200 group-hover:text-white">Update DML.sql with NULLable FK documentation</p>
+                                <p class="text-sm text-slate-200 group-hover:text-white">Change SELECT to LEFT JOIN Players in run-submissions.astro</p>
+                                <p class="text-xs text-slate-500">INNER JOIN hides rows where playerID is NULL</p>
+                            </div>
+                        </label>
+                        <label class="checklist-item flex items-start gap-3 cursor-pointer group">
+                            <div class="checkmark w-5 h-5 rounded border border-slate-600 bg-slate-800 flex items-center justify-center mt-0.5 flex-shrink-0">
+                                <i data-lucide="check" class="w-3 h-3 text-white opacity-0"></i>
+                            </div>
+                            <input type="checkbox" class="sr-only" data-progress>
+                            <div>
+                                <p class="text-sm text-slate-200 group-hover:text-white">Update run-submissions.astro to display NULL values in browse table</p>
+                            </div>
+                        </label>
+                        <label class="checklist-item flex items-start gap-3 cursor-pointer group">
+                            <div class="checkmark w-5 h-5 rounded border border-slate-600 bg-slate-800 flex items-center justify-center mt-0.5 flex-shrink-0">
+                                <i data-lucide="check" class="w-3 h-3 text-white opacity-0"></i>
+                            </div>
+                            <input type="checkbox" class="sr-only" data-progress>
+                            <div>
+                                <p class="text-sm text-slate-200 group-hover:text-white">Add NULL option to both Add AND Update forms for playerID</p>
+                                <p class="text-xs text-slate-500">Rubric: "At least one UPDATE sets a FK to NULL"</p>
+                            </div>
+                        </label>
+                        <label class="checklist-item flex items-start gap-3 cursor-pointer group">
+                            <div class="checkmark w-5 h-5 rounded border border-slate-600 bg-slate-800 flex items-center justify-center mt-0.5 flex-shrink-0">
+                                <i data-lucide="check" class="w-3 h-3 text-white opacity-0"></i>
+                            </div>
+                            <input type="checkbox" class="sr-only" data-progress>
+                            <div>
+                                <p class="text-sm text-slate-200 group-hover:text-white">Update DML.sql with LEFT JOIN and NULLable FK documentation</p>
                             </div>
                         </label>
                         <label class="checklist-item flex items-start gap-3 cursor-pointer group">
@@ -1159,7 +1260,7 @@ npx forever list</code></pre>
                     <span>CS340 Project Group 101</span>
                 </div>
                 <p class="text-slate-600 text-xs">
-                    Step 3 Final Submission Guide • Due: February 23, 2024 at 11:59 PM
+                    Step 3 Final Submission Guide • Due: February 23, 2026 at 11:59 PM
                 </p>
             </footer>
         </div>
