@@ -67,7 +67,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \rhead{Group 101}
-\lhead{CS340 - Project Step 3 Final}
+\lhead{CS340 - Project Step 4 Draft}
 \rfoot{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
@@ -106,7 +106,24 @@
 \hrulefill
 
 % =====================
-% STEP 3 DRAFT FEEDBACK (most recent -- on top per project guide)
+% STEP 3 FINAL FEEDBACK
+% =====================
+\section*{Feedback from Step 3 Final}
+
+Step 3 Final has not yet been graded at the time of this submission. We will incorporate any grading feedback into the next step.
+
+\subsection*{Upgrades for Step 4}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{RESET Stored Procedure}: Wrapped the entire DDL (DROP, CREATE, INSERT) into a \texttt{sp\_reset\_database} stored procedure. A ``Reset Database'' button on the home page calls this procedure to restore all tables and sample data.
+    \item \textbf{CUD Demo via Stored Procedure}: Created \texttt{sp\_delete\_player\_by\_name} stored procedure in PL.sql. A ``Delete TurboTina'' demo button on the home page calls this SP to demonstrate a CUD operation, which can then be undone by pressing RESET.
+    \item \textbf{SELECT on All Entity Pages}: All 6 entity pages (Players, Games, Platforms, RunCategories, RunSubmissions, GamesOnPlatforms) display data from the database using SELECT queries with JOINs for user-friendly FK display.
+\end{itemize}
+
+\hrulefill
+
+% =====================
+% STEP 3 DRAFT FEEDBACK
 % =====================
 \section*{Feedback from Step 3 Draft}
 
@@ -869,7 +886,7 @@ We used Claude (Anthropic, claude-opus-4-6 model via Claude Code CLI) to assist 
 
 \vfill
 \begin{center}
-\textit{Group 101 -- Cameron Brooks \& Brayden Plumb -- CS340 Winter 2026 -- Step 3 Final}
+\textit{Group 101 -- Cameron Brooks \& Brayden Plumb -- CS340 Winter 2026 -- Step 4 Draft}
 \end{center}
 
 \end{document}
