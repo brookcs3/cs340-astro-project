@@ -1,0 +1,328 @@
+---
+// Shared layout for all pages
+// Provides navigation bar, consistent styling, and page structure
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title} - Northern Oregon Speedrunners Association</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+    }
+
+    .site-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .site-title a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .site-subtitle {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.15rem;
+    }
+
+    nav {
+      background: #16213e;
+      padding: 0 2rem;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+
+    nav a {
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    nav a:hover {
+      color: #fff;
+      border-bottom-color: #64748b;
+    }
+
+    nav a.active {
+      color: #fff;
+      border-bottom-color: #3b82f6;
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    footer {
+      background: #1a1a2e;
+      color: #94a3b8;
+      text-align: center;
+      padding: 1rem 2rem;
+      font-size: 0.8rem;
+      margin-top: auto;
+    }
+
+    h1.page-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #1a1a2e;
+    }
+
+    /* Shared table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+
+    thead {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    tbody tr:hover {
+      background: #eef2ff;
+    }
+
+    /* Shared form styles */
+    .section-card {
+      background: #fff;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .section-card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #1e293b;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 0.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 0.3rem;
+      color: #374151;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-group .hint {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1.25rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: #fff;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-sm {
+      padding: 0.3rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .null-value {
+      color: #9ca3af;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .header-top {
+        padding: 0.75rem 1rem;
+      }
+      nav {
+        padding: 0 1rem;
+      }
+      main {
+        padding: 1rem;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      table {
+        font-size: 0.8rem;
+      }
+      th, td {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="site-title"><a href="/">Northern Oregon Speedrunners Association</a></div>
+        <div class="site-subtitle">CS340 Project - Group 101</div>
+      </div>
+    </div>
+    <nav>
+      <a href="/" class:list={[{ active: currentPath === '/' }]}>Home</a>
+      <a href="/players" class:list={[{ active: currentPath === '/players' }]}>Players</a>
+      <a href="/games" class:list={[{ active: currentPath === '/games' }]}>Games</a>
+      <a href="/platforms" class:list={[{ active: currentPath === '/platforms' }]}>Platforms</a>
+      <a href="/run-categories" class:list={[{ active: currentPath === '/run-categories' }]}>Run Categories</a>
+      <a href="/run-submissions" class:list={[{ active: currentPath === '/run-submissions' }]}>Run Submissions</a>
+      <a href="/games-on-platforms" class:list={[{ active: currentPath === '/games-on-platforms' }]}>Games on Platforms</a>
+    </nav>
+  </header>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer>
+    Northern Oregon Speedrunners Association &middot; CS340 Group 101 &middot; Cameron Brooks &amp; Brayden Plumb
+  </footer>
+</body>
+</html>
