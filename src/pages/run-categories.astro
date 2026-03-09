@@ -20,18 +20,18 @@ if (Astro.request.method === 'POST') {
       const name = form.get('name');
       const gameID = form.get('gameID');
       const ruleset = form.get('ruleset') || null;
-      await db.execute('INSERT INTO RunCategories (name, ruleset, gameID) VALUES (?, ?, ?)', [name, ruleset, gameID]);
+      await db.query('CALL sp_insert_run_category(?, ?, ?)', [name, ruleset, gameID]);
       message = `Run category "${name}" added.`;
     } else if (action === 'update') {
       const runCategoryID = form.get('runCategoryID');
       const name = form.get('name');
       const gameID = form.get('gameID');
       const ruleset = form.get('ruleset') || null;
-      await db.execute('UPDATE RunCategories SET name = ?, ruleset = ?, gameID = ? WHERE runCategoryID = ?', [name, ruleset, gameID, runCategoryID]);
+      await db.query('CALL sp_update_run_category(?, ?, ?, ?)', [runCategoryID, name, ruleset, gameID]);
       message = `Run category ${runCategoryID} updated.`;
     } else if (action === 'delete') {
       const runCategoryID = form.get('runCategoryID');
-      await db.execute('DELETE FROM RunCategories WHERE runCategoryID = ?', [runCategoryID]);
+      await db.query('CALL sp_delete_run_category(?)', [runCategoryID]);
       message = `Run category ${runCategoryID} deleted.`;
     }
 
@@ -43,15 +43,10 @@ if (Astro.request.method === 'POST') {
 
 try {
   const db = await getConnection();
-  const [catRows] = await db.execute(`
-    SELECT rc.runCategoryID, rc.name, rc.ruleset, rc.gameID, g.title AS gameTitle
-    FROM RunCategories rc
-    INNER JOIN Games g ON rc.gameID = g.gameID
-    ORDER BY rc.runCategoryID
-  `);
+  const [catRows] = await db.query('CALL sp_select_all_run_categories()');
   categories = catRows as any[];
 
-  const [gameRows] = await db.execute('SELECT gameID, title FROM Games ORDER BY title');
+  const [gameRows] = await db.query('CALL sp_select_all_games()');
   games = gameRows as any[];
 
   await db.end();

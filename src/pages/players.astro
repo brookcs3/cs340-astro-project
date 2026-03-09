@@ -18,17 +18,17 @@ if (Astro.request.method === 'POST') {
     if (action === 'insert') {
       const displayName = form.get('displayName');
       const country = form.get('country') || null;
-      await db.execute('INSERT INTO Players (displayName, country) VALUES (?, ?)', [displayName, country]);
+      await db.query('CALL sp_insert_player(?, ?)', [displayName, country]);
       message = `Player "${displayName}" added.`;
     } else if (action === 'update') {
       const playerID = form.get('playerID');
       const displayName = form.get('displayName');
       const country = form.get('country') || null;
-      await db.execute('UPDATE Players SET displayName = ?, country = ? WHERE playerID = ?', [displayName, country, playerID]);
+      await db.query('CALL sp_update_player(?, ?, ?)', [playerID, displayName, country]);
       message = `Player ${playerID} updated.`;
     } else if (action === 'delete') {
       const playerID = form.get('playerID');
-      await db.execute('DELETE FROM Players WHERE playerID = ?', [playerID]);
+      await db.query('CALL sp_delete_player(?)', [playerID]);
       message = `Player ${playerID} deleted.`;
     }
 
@@ -40,7 +40,7 @@ if (Astro.request.method === 'POST') {
 
 try {
   const db = await getConnection();
-  const [rows] = await db.execute('SELECT playerID, displayName, country FROM Players ORDER BY playerID');
+  const [rows] = await db.query('CALL sp_select_all_players()');
   players = rows as any[];
   await db.end();
 } catch (e: any) {

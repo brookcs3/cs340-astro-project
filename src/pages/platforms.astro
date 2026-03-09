@@ -17,16 +17,16 @@ if (Astro.request.method === 'POST') {
 
     if (action === 'insert') {
       const name = form.get('name');
-      await db.execute('INSERT INTO Platforms (name) VALUES (?)', [name]);
+      await db.query('CALL sp_insert_platform(?)', [name]);
       message = `Platform "${name}" added.`;
     } else if (action === 'update') {
       const platformID = form.get('platformID');
       const name = form.get('name');
-      await db.execute('UPDATE Platforms SET name = ? WHERE platformID = ?', [name, platformID]);
+      await db.query('CALL sp_update_platform(?, ?)', [platformID, name]);
       message = `Platform ${platformID} updated.`;
     } else if (action === 'delete') {
       const platformID = form.get('platformID');
-      await db.execute('DELETE FROM Platforms WHERE platformID = ?', [platformID]);
+      await db.query('CALL sp_delete_platform(?)', [platformID]);
       message = `Platform ${platformID} deleted.`;
     }
 
@@ -38,7 +38,7 @@ if (Astro.request.method === 'POST') {
 
 try {
   const db = await getConnection();
-  const [rows] = await db.execute('SELECT platformID, name FROM Platforms ORDER BY platformID');
+  const [rows] = await db.query('CALL sp_select_all_platforms()');
   platforms = rows as any[];
   await db.end();
 } catch (e: any) {

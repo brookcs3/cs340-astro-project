@@ -19,18 +19,18 @@ if (Astro.request.method === 'POST') {
       const title = form.get('title');
       const releaseYear = form.get('releaseYear') || null;
       const developer = form.get('developer') || null;
-      await db.execute('INSERT INTO Games (title, releaseYear, developer) VALUES (?, ?, ?)', [title, releaseYear, developer]);
+      await db.query('CALL sp_insert_game(?, ?, ?)', [title, releaseYear, developer]);
       message = `Game "${title}" added.`;
     } else if (action === 'update') {
       const gameID = form.get('gameID');
       const title = form.get('title');
       const releaseYear = form.get('releaseYear') || null;
       const developer = form.get('developer') || null;
-      await db.execute('UPDATE Games SET title = ?, releaseYear = ?, developer = ? WHERE gameID = ?', [title, releaseYear, developer, gameID]);
+      await db.query('CALL sp_update_game(?, ?, ?, ?)', [gameID, title, releaseYear, developer]);
       message = `Game ${gameID} updated.`;
     } else if (action === 'delete') {
       const gameID = form.get('gameID');
-      await db.execute('DELETE FROM Games WHERE gameID = ?', [gameID]);
+      await db.query('CALL sp_delete_game(?)', [gameID]);
       message = `Game ${gameID} deleted.`;
     }
 
@@ -42,7 +42,7 @@ if (Astro.request.method === 'POST') {
 
 try {
   const db = await getConnection();
-  const [rows] = await db.execute('SELECT gameID, title, releaseYear, developer FROM Games ORDER BY gameID');
+  const [rows] = await db.query('CALL sp_select_all_games()');
   games = rows as any[];
   await db.end();
 } catch (e: any) {

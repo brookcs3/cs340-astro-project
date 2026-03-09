@@ -29,9 +29,9 @@ if (Astro.request.method === 'POST') {
       const verified = form.get('verified');
       const verifiedDate = form.get('verifiedDate') || null;
       const videoLink = form.get('videoLink') || null;
-      await db.execute(
-        'INSERT INTO RunSubmissions (runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink]
+      await db.query(
+         'CALL sp_insert_run_submission(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+         [runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink]
       );
       message = 'Run submission added.';
     } else if (action === 'update') {
@@ -45,14 +45,14 @@ if (Astro.request.method === 'POST') {
       const verified = form.get('verified');
       const verifiedDate = form.get('verifiedDate') || null;
       const videoLink = form.get('videoLink') || null;
-      await db.execute(
-        'UPDATE RunSubmissions SET runTime = ?, submissionDate = ?, verified = ?, verifiedDate = ?, playerID = ?, gameID = ?, platformID = ?, runCategoryID = ?, videoLink = ? WHERE runSubmissionID = ?',
-        [runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink, runSubmissionID]
+      await db.query(
+        'CALL sp_update_run_submission(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [runSubmissionID, runTime, submissionDate, verified, verifiedDate, playerID, gameID, platformID, runCategoryID, videoLink]
       );
       message = `Run submission ${runSubmissionID} updated.`;
     } else if (action === 'delete') {
       const runSubmissionID = form.get('runSubmissionID');
-      await db.execute('DELETE FROM RunSubmissions WHERE runSubmissionID = ?', [runSubmissionID]);
+      await db.query('CALL sp_delete_run_submission(?)', [runSubmissionID]);
       message = `Run submission ${runSubmissionID} deleted.`;
     }
 
@@ -65,37 +65,19 @@ if (Astro.request.method === 'POST') {
 try {
   const db = await getConnection();
 
-  const [subRows] = await db.execute(`
-    SELECT rs.runSubmissionID, rs.runTime, rs.submissionDate, rs.verified,
-           rs.verifiedDate, rs.videoLink,
-           rs.playerID, p.displayName AS playerName,
-           rs.gameID, g.title AS gameTitle,
-           rs.platformID, pl.name AS platformName,
-           rs.runCategoryID, rc.name AS categoryName
-    FROM RunSubmissions rs
-    LEFT JOIN Players p ON rs.playerID = p.playerID
-    INNER JOIN Games g ON rs.gameID = g.gameID
-    INNER JOIN Platforms pl ON rs.platformID = pl.platformID
-    INNER JOIN RunCategories rc ON rs.runCategoryID = rc.runCategoryID
-    ORDER BY rs.runSubmissionID
-  `);
+  const [subRows] = await db.query('CALL sp_select_all_run_submissions()');
   submissions = subRows as any[];
 
-  const [pRows] = await db.execute('SELECT playerID, displayName FROM Players ORDER BY displayName');
+  const [pRows] = await db.query('CALL sp_select_all_players()');
   players = pRows as any[];
 
-  const [gRows] = await db.execute('SELECT gameID, title FROM Games ORDER BY title');
+  const [gRows] = await db.query('CALL sp_select_all_games()');
   games = gRows as any[];
 
-  const [plRows] = await db.execute('SELECT platformID, name FROM Platforms ORDER BY name');
+  const [plRows] = await db.query('CALL sp_select_all_platforms()');
   platforms = plRows as any[];
 
-  const [cRows] = await db.execute(`
-    SELECT rc.runCategoryID, rc.name, g.title AS gameTitle
-    FROM RunCategories rc
-    INNER JOIN Games g ON rc.gameID = g.gameID
-    ORDER BY g.title, rc.name
-  `);
+  const [cRows] = await db.query('CALL sp_select_all_run_categories()');
   categories = cRows as any[];
 
   await db.end();

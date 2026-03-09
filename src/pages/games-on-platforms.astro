@@ -20,11 +20,11 @@ if (Astro.request.method === 'POST') {
     if (action === 'insert') {
       const gameID = form.get('gameID');
       const platformID = form.get('platformID');
-      await db.execute('INSERT INTO GamesOnPlatforms (gameID, platformID) VALUES (?, ?)', [gameID, platformID]);
+      await db.query('CALL sp_insert_game_on_platform(?, ?)', [gameID, platformID]);
       message = 'Game-platform association added.';
     } else if (action === 'delete') {
       const gameOnPlatformID = form.get('gameOnPlatformID');
-      await db.execute('DELETE FROM GamesOnPlatforms WHERE gameOnPlatformID = ?', [gameOnPlatformID]);
+      await db.query('CALL sp_delete_game_on_platform(?)', [gameOnPlatformID]);
       message = `Association ${gameOnPlatformID} removed.`;
     }
 
@@ -37,20 +37,13 @@ if (Astro.request.method === 'POST') {
 try {
   const db = await getConnection();
 
-  const [assocRows] = await db.execute(`
-    SELECT gop.gameOnPlatformID, gop.gameID, gop.platformID,
-           g.title AS gameTitle, p.name AS platformName
-    FROM GamesOnPlatforms gop
-    INNER JOIN Games g ON gop.gameID = g.gameID
-    INNER JOIN Platforms p ON gop.platformID = p.platformID
-    ORDER BY g.title, p.name
-  `);
+  const [assocRows] = await db.query('CALL sp_select_all_games_on_platforms()');
   associations = assocRows as any[];
 
-  const [gameRows] = await db.execute('SELECT gameID, title FROM Games ORDER BY title');
+  const [gameRows] = await db.query('CALL sp_select_all_games()');
   games = gameRows as any[];
 
-  const [platRows] = await db.execute('SELECT platformID, name FROM Platforms ORDER BY name');
+  const [platRows] = await db.query('CALL sp_select_all_platforms()');
   platforms = platRows as any[];
 
   await db.end();
