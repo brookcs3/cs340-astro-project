@@ -43,10 +43,10 @@ if (Astro.request.method === 'POST') {
 
 try {
   const db = await getConnection();
-  const [catRows] = await db.query('CALL sp_select_all_run_categories()');
+  const [[catRows]] = await db.query('CALL sp_select_all_run_categories()');
   categories = catRows as any[];
 
-  const [gameRows] = await db.query('CALL sp_select_all_games()');
+  const [[gameRows]] = await db.query('CALL sp_select_all_games()');
   games = gameRows as any[];
 
   await db.end();

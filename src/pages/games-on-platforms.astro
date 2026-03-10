@@ -37,13 +37,13 @@ if (Astro.request.method === 'POST') {
 try {
   const db = await getConnection();
 
-  const [assocRows] = await db.query('CALL sp_select_all_games_on_platforms()');
+  const [[assocRows]] = await db.query('CALL sp_select_all_games_on_platforms()');
   associations = assocRows as any[];
 
-  const [gameRows] = await db.query('CALL sp_select_all_games()');
+  const [[gameRows]] = await db.query('CALL sp_select_all_games()');
   games = gameRows as any[];
 
-  const [platRows] = await db.query('CALL sp_select_all_platforms()');
+  const [[platRows]] = await db.query('CALL sp_select_all_platforms()');
   platforms = platRows as any[];
 
   await db.end();

@@ -38,7 +38,7 @@ if (Astro.request.method === 'POST') {
 
 try {
   const db = await getConnection();
-  const [rows] = await db.query('CALL sp_select_all_platforms()');
+  const [[rows]] = await db.query('CALL sp_select_all_platforms()');
   platforms = rows as any[];
   await db.end();
 } catch (e: any) {

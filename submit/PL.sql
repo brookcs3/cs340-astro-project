@@ -102,7 +102,7 @@ CREATE PROCEDURE sp_select_game_by_id(IN p_gameID INT)
 BEGIN
     SELECT gameID, title, releaseYear, developer
     FROM Games
-    WHERE gameID = p_gameID
+    WHERE gameID = p_gameID;
 END //
 DELIMITER ;
 
@@ -182,6 +182,7 @@ BEGIN
     SET name = p_name
     WHERE platformID = p_platformID;
 END //
+DELIMITER ;
 
 
 DROP PROCEDURE IF EXISTS sp_delete_platform;
@@ -407,6 +408,7 @@ CREATE PROCEDURE sp_delete_run_submission(IN p_runSubmissionID INT)
 BEGIN
     DELETE FROM RunSubmissions WHERE runSubmissionID = p_runSubmissionID;
 END //
+DELIMITER ;
 
 
 -- ========================================================
