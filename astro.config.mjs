@@ -19,5 +19,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',  // accept connections from any IP
     port: 8742        // my assigned port on classwork server
+  },
+
+  vite: {
+    server: {
+      allowedHosts: ['classwork.engr.oregonstate.edu']
+    }
   }
 });
