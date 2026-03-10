@@ -65,20 +65,20 @@ if (Astro.request.method === 'POST') {
 try {
   const db = await getConnection();
 
-  const [[subRows]] = await db.query('CALL sp_select_all_run_submissions()');
-  submissions = subRows as any[];
+  const [[subRows]] = await db.query<any[]>('CALL sp_select_all_run_submissions()');
+  submissions = subRows;
 
-  const [[pRows]] = await db.query('CALL sp_select_all_players()');
-  players = pRows as any[];
+  const [[pRows]] = await db.query<any[]>('CALL sp_select_all_players()');
+  players = pRows;
 
-  const [[gRows]] = await db.query('CALL sp_select_all_games()');
-  games = gRows as any[];
+  const [[gRows]] = await db.query<any[]>('CALL sp_select_all_games()');
+  games = gRows;
 
-  const [[plRows]] = await db.query('CALL sp_select_all_platforms()');
-  platforms = plRows as any[];
+  const [[plRows]] = await db.query<any[]>('CALL sp_select_all_platforms()');
+  platforms = plRows;
 
-  const [[cRows]] = await db.query('CALL sp_select_all_run_categories()');
-  categories = cRows as any[];
+  const [[cRows]] = await db.query<any[]>('CALL sp_select_all_run_categories()');
+  categories = cRows;
 
   await db.end();
 } catch (e: any) {
