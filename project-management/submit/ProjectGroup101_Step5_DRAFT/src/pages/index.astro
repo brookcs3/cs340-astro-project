@@ -1,0 +1,267 @@
+---
+// CS340 Project Step 4 - Group 101
+// Cameron Brooks & Brayden Plumb
+// Northern Oregon Speedrunners Association Database
+// Index page: Landing page with RESET button, CUD demo, and links to all entity pages
+
+import Layout from '../layouts/Layout.astro';
+import { getConnection } from '../lib/db';
+
+let message = '';
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const form = await Astro.request.formData();
+    const action = form.get('action');
+    const db = await getConnection();
+
+    if (action === 'reset') {
+      await db.query('CALL sp_reset_database()');
+      message = 'Database has been reset to its original state with all sample data restored.';
+    } else if (action === 'delete_turbotina') {
+      await db.query("CALL sp_delete_player_by_name('TurboTina')");
+      message = 'Player "TurboTina" has been deleted via sp_delete_player_by_name. Her run submissions now show playerID = NULL. Click RESET to restore.';
+    }
+
+    await db.end();
+  } catch (e: any) {
+    error = e.message;
+  }
+}
+---
+
+<Layout title="Home">
+  <h1 class="page-title">Northern Oregon Speedrunners Association</h1>
+
+  {message && <p class="msg msg-success">{message}</p>}
+  {error && <p class="msg msg-error">Database error: {error}</p>}
+
+  <p class="intro">
+    Welcome to the Northern Oregon Speedrunners Association database management system.
+    This application tracks speedrun submissions, players, games, categories, and platforms.
+    Use the pages below to browse and manage all data.
+  </p>
+
+  <!-- Database Admin Controls -->
+  <div class="section-card admin-controls">
+    <h2>Database Admin Controls</h2>
+    <p>Use these controls to test database operations. The <strong>RESET</strong> button restores
+    all tables and sample data to their original state using the <code>sp_reset_database</code> stored procedure.
+    The <strong>CUD Demo</strong> button demonstrates a stored-procedure-based DELETE operation.</p>
+    <div class="admin-buttons">
+      <form method="POST" action="/" style="display:inline;">
+        <input type="hidden" name="action" value="reset" />
+        <button type="submit" class="btn btn-reset" onclick="return confirm('This will DROP all tables, recreate them, and re-insert all sample data. Continue?')">
+          Reset Database
+        </button>
+      </form>
+      <form method="POST" action="/" style="display:inline;">
+        <input type="hidden" name="action" value="delete_turbotina" />
+        <button type="submit" class="btn btn-demo" onclick="return confirm('This will delete TurboTina from Players using sp_delete_player_by_name. Her run submissions will have playerID set to NULL. Continue?')">
+          CUD Demo: Delete TurboTina
+        </button>
+      </form>
+    </div>
+    <p class="admin-hint">
+      <strong>Step 4 Demo Flow:</strong> Click "CUD Demo: Delete TurboTina" to remove a player
+      (observe NULL playerID on Run Submissions page), then click "Reset Database" to restore everything.
+    </p>
+  </div>
+
+  <div class="page-grid">
+    <a href="/players" class="page-card">
+      <h2>Players</h2>
+      <p>Browse, add, update, and delete speedrunner profiles. View display names and countries of origin for all registered players.</p>
+      <span class="card-link">Manage Players &rarr;</span>
+    </a>
+
+    <a href="/games" class="page-card">
+      <h2>Games</h2>
+      <p>Browse, add, update, and delete video games available for speedrunning. View game titles, release years, and developers.</p>
+      <span class="card-link">Manage Games &rarr;</span>
+    </a>
+
+    <a href="/platforms" class="page-card">
+      <h2>Platforms</h2>
+      <p>Browse, add, update, and delete gaming platforms (hardware/environments). Track all platforms that games can be played on.</p>
+      <span class="card-link">Manage Platforms &rarr;</span>
+    </a>
+
+    <a href="/run-categories" class="page-card">
+      <h2>Run Categories</h2>
+      <p>Browse, add, update, and delete speedrun category types for each game. Each category defines a ruleset for how a game can be speedrun.</p>
+      <span class="card-link">Manage Run Categories &rarr;</span>
+    </a>
+
+    <a href="/run-submissions" class="page-card">
+      <h2>Run Submissions</h2>
+      <p>Browse, add, update, and delete speedrun submissions. Each submission records a player's run time, game, platform, category, and verification status.</p>
+      <span class="card-link">Manage Run Submissions &rarr;</span>
+    </a>
+
+    <a href="/games-on-platforms" class="page-card">
+      <h2>Games on Platforms</h2>
+      <p>Browse, add, and remove game-platform associations. This M:N intersection table tracks which games are available on which platforms.</p>
+      <span class="card-link">Manage Associations &rarr;</span>
+    </a>
+  </div>
+
+  <div class="section-card">
+    <h2>Database Overview</h2>
+    <p>This database consists of 6 tables:</p>
+    <ul>
+      <li><strong>Players</strong> &mdash; Speedrunner participants (1:M with RunSubmissions)</li>
+      <li><strong>Games</strong> &mdash; Video games available for speedrunning (1:M with RunCategories, RunSubmissions; M:N with Platforms)</li>
+      <li><strong>Platforms</strong> &mdash; Hardware/environments for playing games (M:N with Games)</li>
+      <li><strong>RunCategories</strong> &mdash; Speedrun types per game with rulesets (1:M with RunSubmissions)</li>
+      <li><strong>RunSubmissions</strong> &mdash; Individual speedrun attempt records linking Players, Games, Platforms, and RunCategories</li>
+      <li><strong>GamesOnPlatforms</strong> &mdash; Intersection table for Games-Platforms M:N relationship</li>
+    </ul>
+  </div>
+</Layout>
+
+<style>
+  .intro {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #374151;
+    margin-bottom: 2rem;
+    max-width: 800px;
+  }
+
+  .msg {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .msg-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+  }
+
+  .msg-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+
+  .admin-controls {
+    border-left: 4px solid #8b5cf6;
+    margin-bottom: 2rem;
+  }
+
+  .admin-controls h2 {
+    color: #5b21b6;
+  }
+
+  .admin-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .btn-reset {
+    background: #dc2626;
+    color: #fff;
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .btn-reset:hover {
+    background: #b91c1c;
+  }
+
+  .btn-demo {
+    background: #7c3aed;
+    color: #fff;
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .btn-demo:hover {
+    background: #6d28d9;
+  }
+
+  .admin-hint {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .page-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 4px solid #3b82f6;
+    transition: box-shadow 0.15s, transform 0.15s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+
+  .page-card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+  }
+
+  .page-card p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .card-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #3b82f6;
+    margin-top: 0.75rem;
+  }
+
+  .section-card ul {
+    margin: 0.5rem 0 0 1.5rem;
+    line-height: 1.8;
+  }
+
+  .section-card li {
+    font-size: 0.9rem;
+  }
+
+  .section-card p {
+    font-size: 0.9rem;
+    color: #374151;
+  }
+</style>

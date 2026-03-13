@@ -197,6 +197,7 @@ cs340-astro-project/
 ├── src/
 │   └── pages/
 │       └── index.astro      # Main page (this is what you see at /)
+├── project-management/      # Markdown files for AI Context & Project Documentation
 ├── dist/                    # Production build output (gitignored)
 ├── node_modules/            # Dependencies (gitignored)
 ├── .astro/                  # Astro cache (gitignored)
