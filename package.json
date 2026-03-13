@@ -1,5 +1,5 @@
 {
-  "name": "activity2",
+  "name": "final-portfolio-assignment",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,8 +9,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.1",
-    "astro": "^5.16.6",
+    "@astrojs/node": "^10.0.1",
+    "astro": "^6.0.4",
     "forever": "^4.0.3",
     "mysql2": "^3.16.0"
   }

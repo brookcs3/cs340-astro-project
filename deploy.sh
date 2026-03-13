@@ -14,7 +14,7 @@ rsync -avz --delete \
   --exclude='.env' \
   --exclude='.DS_Store' \
   --exclude='deploy.sh' \
-  ./ classwork:~/CS340/activity2/
+  ./ classwork:~/CS340/final-portfolio-assignment/
 
 echo "📦 Installing dependencies and building..."
 
@@ -23,7 +23,7 @@ ssh classwork << 'ENDSSH'
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 
-  cd ~/CS340/activity2
+  cd ~/CS340/final-portfolio-assignment
 
   # Stop existing server
   npx forever stop dist/server/entry.mjs 2>/dev/null || true
