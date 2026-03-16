@@ -1,4 +1,4 @@
--- CS340 Project Step 3 - Group 101
+-- CS340 Portfolio Project - Group 101
 -- Cameron Brooks & Brayden Plumb
 -- Data Manipulation Queries (DML)
 --
@@ -8,6 +8,9 @@
 -- Colon : character is used to denote variables that will have data from the
 -- backend programming language.
 -- Example: :playerIDInput represents a value passed from the web application.
+--
+-- Citation: DML query format follows CS340 project guide conventions.
+-- AI tools (Claude) assisted with initial query drafting.
 
 -- ========================================================
 -- PLAYERS

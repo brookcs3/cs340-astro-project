@@ -1,8 +1,20 @@
-# CS340 Activity 2 - Astro + MySQL
-
-This is the foundation for our CS340 project. It's a bit overengineered for Activity 2, but that means we have a solid starting point to build on.
+# CS340 Portfolio Project - Group 101
+## Northern Oregon Speedrunners Association Database
+**Cameron Brooks & Brayden Plumb**
 
 **Live URL:** http://classwork.engr.oregonstate.edu:8742/
+
+## Citations
+
+This project uses the **Astro** web framework (https://astro.build/) with the **@astrojs/node** SSR adapter for server-side rendering. Database connectivity is handled by **mysql2/promise** (https://www.npmjs.com/package/mysql2).
+
+- **Framework setup** (astro.config.mjs, Layout.astro, page routing): Adapted from Astro official documentation (https://docs.astro.build/).
+- **CRUD page structure** (all .astro entity pages): SSR form handling pattern adapted from Astro on-demand rendering guide. All entity-specific logic, HTML templates, and styling are our own original work.
+- **Database connection** (src/lib/db.ts): Connection pattern from mysql2 npm documentation.
+- **Stored procedures** (sql/PL.sql): SQL syntax per MySQL 8.0 Reference Manual. Initial `sp_reset_database` and `sp_delete_player_by_name` by Cameron Brooks with AI assistance. All remaining stored procedures authored by Brayden Plumb.
+- **DDL and sample data** (sql/DDL.sql): Schema design is our own original work following CS340 course guidelines.
+- **AI tools**: Claude (Anthropic) was used for initial project scaffolding, debugging mysql2 CALL result handling, and documentation generation. All AI-generated code was reviewed, tested, and modified by team members. Peer review feedback was written without AI assistance.
+- **CSS styling**: All styling is our own original work.
 
 ---
 

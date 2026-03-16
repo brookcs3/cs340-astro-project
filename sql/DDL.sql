@@ -1,9 +1,13 @@
--- CS340 Project Step 3 - Group 101
+-- CS340 Portfolio Project - Group 101
 -- Cameron Brooks & Brayden Plumb
 -- Data Definition Queries (DDL) and Sample Data
 --
 -- Northern Oregon Speedrunners Association Database
 -- Tracks speedrun submissions, players, games, categories, and platforms.
+--
+-- Citation: DDL structure follows CS340 course guidelines and MySQL 8.0 syntax.
+-- AI tools (Claude) assisted with schema refinement and sp_reset_database procedure.
+-- Sample data is our own original work.
 
 SET FOREIGN_KEY_CHECKS=0;
 SET AUTOCOMMIT = 0;

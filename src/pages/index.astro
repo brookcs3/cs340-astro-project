@@ -1,8 +1,13 @@
 ---
-// CS340 Project Step 4 - Group 101
+// CS340 Portfolio Project - Group 101
 // Cameron Brooks & Brayden Plumb
 // Northern Oregon Speedrunners Association Database
 // Index page: Landing page with RESET button, CUD demo, and links to all entity pages
+//
+// Citation: Page structure and SSR form handling adapted from Astro docs
+// (https://docs.astro.build/en/guides/on-demand-rendering/).
+// MySQL stored procedure calls use mysql2/promise (https://www.npmjs.com/package/mysql2).
+// AI tools (Claude) used to assist with initial scaffolding and debugging.
 
 import Layout from '../layouts/Layout.astro';
 import { getConnection } from '../lib/db';

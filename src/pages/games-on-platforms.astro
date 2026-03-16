@@ -1,6 +1,12 @@
 ---
-// CS340 Project Step 3 - Group 101
-// Games on Platforms page: Browse, Add, Delete game-platform associations (M:N intersection table)
+// CS340 Portfolio Project - Group 101
+// Cameron Brooks & Brayden Plumb
+// Games on Platforms page: Browse, Add, Update, Delete game-platform associations (M:N intersection table)
+// UPDATE M:N relationship implemented here — user can change gameID or platformID on an existing association.
+//
+// Citation: CRUD pattern adapted from Astro SSR docs. mysql2/promise for DB calls.
+// AI tools (Claude) assisted with initial scaffolding. SP wiring by Brayden Plumb.
+// UPDATE M:N is our own original work.
 
 import Layout from '../layouts/Layout.astro';
 import { getConnection } from '../lib/db';

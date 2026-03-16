@@ -1,11 +1,16 @@
--- CS340 Project Step 4 - Group 101
+-- CS340 Portfolio Project - Group 101
 -- Cameron Brooks & Brayden Plumb
--- Programmable Logic (PL) - CUD Stored Procedures
+-- Programmable Logic (PL) - Stored Procedures for all CRUD operations
 --
 -- Northern Oregon Speedrunners Association Database
 --
--- This file contains stored procedures for Create, Update, and Delete (CUD)
--- operations. The sp_reset_database procedure is in DDL.sql.
+-- This file contains stored procedures for Select, Create, Update, and Delete
+-- operations across all entities. The sp_reset_database procedure is in DDL.sql.
+--
+-- Citation: SQL stored procedure syntax per MySQL 8.0 Reference Manual
+-- (https://dev.mysql.com/doc/refman/8.0/en/create-procedure.html).
+-- Initial sp_reset_database and sp_delete_player_by_name by Cameron Brooks with
+-- AI assistance (Claude). All remaining stored procedures authored by Brayden Plumb.
 
 -- DROP PROCEDURES IF EXISTING
 -- This ensures that if you run this file multiple times, it won't error out
