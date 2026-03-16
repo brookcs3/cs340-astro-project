@@ -2,7 +2,7 @@
 // Cameron Brooks & Brayden Plumb
 // Database connection utility
 //
-// Citation: Connection pattern from mysql2/promise docs (https://www.npmjs.com/package/mysql2).
+// Citation (accessed Jan 2026): Connection pattern from mysql2/promise docs (https://www.npmjs.com/package/mysql2).
 // Environment variable loading via Astro's import.meta.env (https://docs.astro.build/en/guides/environment-variables/).
 
 import mysql from 'mysql2/promise';

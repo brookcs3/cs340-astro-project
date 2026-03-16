@@ -5,9 +5,10 @@
 -- Northern Oregon Speedrunners Association Database
 --
 -- This file contains stored procedures for Select, Create, Update, and Delete
--- operations across all entities. The sp_reset_database procedure is in DDL.sql.
+-- operations across all entities. The sp_reset_database procedure is defined
+-- at the end of DDL.sql (after sample data) so it can be loaded alongside the schema.
 --
--- Citation: SQL stored procedure syntax per MySQL 8.0 Reference Manual
+-- Citation (accessed Jan-Mar 2026): SQL stored procedure syntax per MySQL 8.0 Reference Manual
 -- (https://dev.mysql.com/doc/refman/8.0/en/create-procedure.html).
 -- Initial sp_reset_database and sp_delete_player_by_name by Cameron Brooks with
 -- AI assistance (Claude). All remaining stored procedures authored by Brayden Plumb.
@@ -64,6 +65,7 @@ DROP PROCEDURE IF EXISTS sp_select_all_games_on_platforms;
 DROP PROCEDURE IF EXISTS sp_select_all_games_for_platform_association;
 DROP PROCEDURE IF EXISTS sp_select_all_platforms_for_platform_association;
 DROP PROCEDURE IF EXISTS sp_insert_game_on_platform;
+DROP PROCEDURE IF EXISTS sp_update_game_on_platform;
 DROP PROCEDURE IF EXISTS sp_delete_game_on_platform;
 
 
@@ -326,7 +328,7 @@ CREATE PROCEDURE sp_insert_run_submission(
     IN p_gameID INT,
     IN p_platformID INT,
     IN p_runCategoryID INT,
-    IN p_videoLink VARCHAR(255)
+    IN p_videoLink VARCHAR(2048)
 )
 BEGIN
     INSERT INTO RunSubmissions (runTime, submissionDate, verified, verifiedDate,
@@ -346,7 +348,7 @@ CREATE PROCEDURE sp_update_run_submission(
     IN p_gameID INT,
     IN p_platformID INT,
     IN p_runCategoryID INT,
-    IN p_videoLink VARCHAR(255)
+    IN p_videoLink VARCHAR(2048)
 )
 BEGIN
     UPDATE RunSubmissions
@@ -408,6 +410,19 @@ CREATE PROCEDURE sp_insert_game_on_platform(IN p_gameID INT, IN p_platformID INT
 BEGIN
     INSERT INTO GamesOnPlatforms (gameID, platformID)
     VALUES (p_gameID, p_platformID);
+END //
+
+
+CREATE PROCEDURE sp_update_game_on_platform(
+    IN p_gameOnPlatformID INT,
+    IN p_gameID INT,
+    IN p_platformID INT
+)
+BEGIN
+    UPDATE GamesOnPlatforms
+    SET gameID = p_gameID,
+        platformID = p_platformID
+    WHERE gameOnPlatformID = p_gameOnPlatformID;
 END //
 
 

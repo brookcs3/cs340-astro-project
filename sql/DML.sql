@@ -9,7 +9,7 @@
 -- backend programming language.
 -- Example: :playerIDInput represents a value passed from the web application.
 --
--- Citation: DML query format follows CS340 project guide conventions.
+-- Citation (accessed Jan-Mar 2026): DML query format follows CS340 project guide conventions.
 -- AI tools (Claude) assisted with initial query drafting.
 
 -- ========================================================
@@ -228,6 +228,13 @@ SELECT platformID, name FROM Platforms ORDER BY name;
 -- INSERT: Add a new game-platform association (dis-associate / re-associate)
 INSERT INTO GamesOnPlatforms (gameID, platformID)
 VALUES (:gameIDInput, :platformIDInput);
+
+-- UPDATE: Update the game and/or platform for an existing association (M:N UPDATE)
+-- This allows changing which game-platform pair an association represents.
+UPDATE GamesOnPlatforms
+SET gameID = :gameIDInput,
+    platformID = :platformIDInput
+WHERE gameOnPlatformID = :gameOnPlatformIDInput;
 
 -- DELETE: Remove a game-platform association
 DELETE FROM GamesOnPlatforms WHERE gameOnPlatformID = :gameOnPlatformIDInput;

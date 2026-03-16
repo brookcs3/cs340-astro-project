@@ -2,7 +2,7 @@
 // CS340 Portfolio Project - Group 101
 // Cameron Brooks & Brayden Plumb
 //
-// Citation: Configuration adapted from Astro docs (https://docs.astro.build/)
+// Citation (accessed Jan 2026): Configuration adapted from Astro docs (https://docs.astro.build/)
 // and @astrojs/node adapter docs (https://docs.astro.build/en/guides/integrations-guide/node/).
 
 import { defineConfig } from 'astro/config';
