@@ -231,15 +231,67 @@ DELETE FROM GamesOnPlatforms WHERE gameOnPlatformID = :gameOnPlatformIDInput;
 
 
 -- ========================================================
--- STORED PROCEDURE CALLS (Step 4)
+-- STORED PROCEDURE CALLS (Step 4 & Step 5)
 -- ========================================================
+-- All CUD operations and SELECTs are now routed through stored procedures.
+-- The raw SQL above documents the underlying logic; the CALL statements below
+-- are what the Astro pages actually execute.
 
--- RESET: Call the sp_reset_database stored procedure to restore all tables
--- and sample data to their original state. Used by the RESET button on the home page.
+-- RESET: Restore all tables and sample data (home page)
 CALL sp_reset_database();
 
--- CUD DEMO: Call sp_delete_player_by_name to delete a player by display name.
--- This demonstrates a stored-procedure-based DELETE operation.
--- When TurboTina is deleted, her RunSubmissions are preserved with playerID = NULL
--- (ON DELETE SET NULL behavior).
+-- CUD DEMO: Delete a player by name (home page demo button)
 CALL sp_delete_player_by_name(:displayNameInput);
+
+-- PLAYERS
+CALL sp_select_all_players();
+CALL sp_select_player_by_id(:playerIDInput);
+CALL sp_insert_player(:displayNameInput, :countryInput);
+CALL sp_update_player(:playerIDInput, :displayNameInput, :countryInput);
+CALL sp_delete_player(:playerIDInput);
+
+-- GAMES
+CALL sp_select_all_games();
+CALL sp_select_game_by_id(:gameIDInput);
+CALL sp_insert_game(:titleInput, :releaseYearInput, :developerInput);
+CALL sp_update_game(:gameIDInput, :titleInput, :releaseYearInput, :developerInput);
+CALL sp_delete_game(:gameIDInput);
+
+-- PLATFORMS
+CALL sp_select_all_platforms();
+CALL sp_select_platform_by_id(:platformIDInput);
+CALL sp_insert_platform(:nameInput);
+CALL sp_update_platform(:platformIDInput, :nameInput);
+CALL sp_delete_platform(:platformIDInput);
+
+-- RUN CATEGORIES
+CALL sp_select_all_run_categories();
+CALL sp_select_run_category_by_id(:runCategoryIDInput);
+CALL sp_select_all_games_for_run_category();
+CALL sp_insert_run_category(:nameInput, :rulesetInput, :gameIDInput);
+CALL sp_update_run_category(:runCategoryIDInput, :nameInput, :rulesetInput, :gameIDInput);
+CALL sp_delete_run_category(:runCategoryIDInput);
+
+-- RUN SUBMISSIONS
+CALL sp_select_all_run_submissions();
+CALL sp_select_run_submission_by_id(:runSubmissionIDInput);
+CALL sp_select_all_players_for_run_submission();
+CALL sp_select_all_games_for_run_submission();
+CALL sp_select_all_platforms_for_run_submission();
+CALL sp_select_all_categories_for_run_submission();
+CALL sp_insert_run_submission(:runTimeInput, :submissionDateInput, :verifiedInput,
+    :verifiedDateInput, :playerIDInput, :gameIDInput, :platformIDInput,
+    :runCategoryIDInput, :videoLinkInput);
+CALL sp_update_run_submission(:runSubmissionIDInput, :runTimeInput, :submissionDateInput,
+    :verifiedInput, :verifiedDateInput, :playerIDInput, :gameIDInput, :platformIDInput,
+    :runCategoryIDInput, :videoLinkInput);
+CALL sp_set_run_submission_player_to_null(:runSubmissionIDInput);
+CALL sp_delete_run_submission(:runSubmissionIDInput);
+
+-- GAMES ON PLATFORMS (M:N)
+CALL sp_select_all_games_on_platforms();
+CALL sp_select_all_games_for_platform_association();
+CALL sp_select_all_platforms_for_platform_association();
+CALL sp_insert_game_on_platform(:gameIDInput, :platformIDInput);
+CALL sp_update_game_on_platform(:gameOnPlatformIDInput, :gameIDInput, :platformIDInput);
+CALL sp_delete_game_on_platform(:gameOnPlatformIDInput);

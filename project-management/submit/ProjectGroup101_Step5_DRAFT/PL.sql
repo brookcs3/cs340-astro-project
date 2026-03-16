@@ -457,6 +457,18 @@ END //
 DELIMITER ;
 
 
+DROP PROCEDURE IF EXISTS sp_update_game_on_platform;
+DELIMITER //
+CREATE PROCEDURE sp_update_game_on_platform(IN p_gameOnPlatformID INT, IN p_gameID INT, IN p_platformID INT)
+BEGIN
+    UPDATE GamesOnPlatforms
+    SET gameID = p_gameID,
+        platformID = p_platformID
+    WHERE gameOnPlatformID = p_gameOnPlatformID;
+END //
+DELIMITER ;
+
+
 DROP PROCEDURE IF EXISTS sp_delete_game_on_platform;
 DELIMITER //
 CREATE PROCEDURE sp_delete_game_on_platform(IN p_gameOnPlatformID INT)

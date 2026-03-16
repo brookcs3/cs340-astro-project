@@ -22,6 +22,12 @@ if (Astro.request.method === 'POST') {
       const platformID = form.get('platformID');
       await db.query('CALL sp_insert_game_on_platform(?, ?)', [gameID, platformID]);
       message = 'Game-platform association added.';
+    } else if (action === 'update') {
+      const gameOnPlatformID = form.get('gameOnPlatformID');
+      const gameID = form.get('gameID');
+      const platformID = form.get('platformID');
+      await db.query('CALL sp_update_game_on_platform(?, ?, ?)', [gameOnPlatformID, gameID, platformID]);
+      message = `Association ${gameOnPlatformID} updated.`;
     } else if (action === 'delete') {
       const gameOnPlatformID = form.get('gameOnPlatformID');
       await db.query('CALL sp_delete_game_on_platform(?)', [gameOnPlatformID]);
@@ -82,10 +88,11 @@ try {
             <td>{assoc.platformName}</td>
             <td>
               <div class="actions">
+                <button class="btn btn-warning btn-sm" onclick={`document.getElementById('edit-id').value='${assoc.gameOnPlatformID}'; document.getElementById('edit-gameID').value='${assoc.gameID}'; document.getElementById('edit-platformID').value='${assoc.platformID}'; document.getElementById('edit-section').scrollIntoView({behavior:'smooth'})`}>Edit</button>
                 <form method="POST" action="/games-on-platforms" style="display:inline;">
                   <input type="hidden" name="action" value="delete" />
                   <input type="hidden" name="gameOnPlatformID" value={assoc.gameOnPlatformID} />
-                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
               </div>
             </td>
@@ -122,6 +129,41 @@ try {
         </div>
       </div>
       <button type="submit" class="btn btn-primary">Add Association</button>
+    </form>
+  </div>
+
+  <!-- Update Existing Association (M:N UPDATE) -->
+  <div class="section-card" id="edit-section">
+    <h2>Update Game-Platform Association</h2>
+    <p>Select an association from the table above by clicking "Edit", then change the game or platform below.</p>
+    <form method="POST" action="/games-on-platforms">
+      <input type="hidden" name="action" value="update" />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="edit-id">Association ID</label>
+          <input type="number" id="edit-id" name="gameOnPlatformID" required readonly placeholder="Click Edit on a row above" />
+          <span class="hint">Auto-filled when clicking Edit</span>
+        </div>
+        <div class="form-group">
+          <label for="edit-gameID">Game *</label>
+          <select id="edit-gameID" name="gameID" required>
+            <option value="">-- Select a Game --</option>
+            {games.map((game) => (
+              <option value={game.gameID}>{game.title}</option>
+            ))}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-platformID">Platform *</label>
+          <select id="edit-platformID" name="platformID" required>
+            <option value="">-- Select a Platform --</option>
+            {platforms.map((p) => (
+              <option value={p.platformID}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-warning">Update Association</button>
     </form>
   </div>
 </Layout>
